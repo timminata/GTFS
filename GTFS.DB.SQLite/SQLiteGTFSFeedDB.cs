@@ -23,7 +23,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Data.SQLite;
+using System.IO;
 
 namespace GTFS.DB.SQLite
 {
@@ -35,7 +37,17 @@ namespace GTFS.DB.SQLite
         /// <summary>
         /// Holds a connection.
         /// </summary>
-        public SQLiteConnection _connection;
+        private SQLiteConnection _connection;
+
+        public string ConnectionString { get; }
+
+        public DbConnection Connection { get=> new SQLiteConnection(ConnectionString, true).OpenAndReturn(); }
+
+
+        public DbParameter CreateParameter(string name, DbType type)
+        {
+            return new SQLiteParameter(name, type);
+        }
 
         /// <summary>
         /// Returns the data source (filename of the db)
@@ -43,6 +55,15 @@ namespace GTFS.DB.SQLite
         public string GetDataSource()
         {
             return _connection.DataSource;
+        }
+
+        /// <summary>
+        /// Returns the data source in full (location of the db)
+        /// </summary>
+        public string GetFullDataSource()
+        {
+            string connStr = _connection.ConnectionString;
+            return connStr.Substring(connStr.IndexOf("Data Source=") + ("Data Source=").Length, connStr.IndexOf("Data Source=") + connStr.Substring(connStr.IndexOf("Data Source=") + ("Data Source=").Length).IndexOf(";"));
         }
 
         /// <summary>
@@ -62,7 +83,20 @@ namespace GTFS.DB.SQLite
         /// </summary>
         public SQLiteGTFSFeedDB(string connectionString)
         {
+            ConnectionString = connectionString;
             _connection = new SQLiteConnection(connectionString, true);
+            _connection.Open();
+
+            // build database.
+            this.RebuildDB();
+        }
+
+        /// <summary>
+        /// Creates a new db.
+        /// </summary>
+        public SQLiteGTFSFeedDB(FileInfo dbFile, int defaultTimeout = 10, int version = 3)
+        {
+            _connection = new SQLiteConnection(String.Format("Data Source={0};DefaultTimeout={1};Version={2};", dbFile.FullName, defaultTimeout, version));
             _connection.Open();
 
             // build database.
@@ -93,6 +127,7 @@ namespace GTFS.DB.SQLite
         {
             int newId = this.AddFeed();
             feed.CopyTo(this.GetFeed(newId));
+            SortAllTables();
             return newId;
         }
 
@@ -180,7 +215,7 @@ namespace GTFS.DB.SQLite
         private void RebuildDB()
         {
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [feed] ( [ID] INTEGER NOT NULL PRIMARY KEY, [feed_publisher_name] TEXT, [feed_publisher_url] TEXT, [feed_lang] TEXT,  [feed_start_date] TEXT, [feed_end_date] TEXT, [feed_version] TEXT );");
-            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [agency] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [agency_name] TEXT, [agency_url] TEXT, [agency_timezone], [agency_lang] TEXT, [agency_phone] TEXT, [agency_fare_url] TEXT );");
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [agency] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [agency_name] TEXT, [agency_url] TEXT, [agency_timezone], [agency_lang] TEXT, [agency_phone] TEXT, [agency_fare_url] TEXT, [agency_email] TEXT );");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [calendar] ( [FEED_ID] INTEGER NOT NULL, [service_id] TEXT NOT NULL, [monday] INTEGER, [tuesday] INTEGER, [wednesday] INTEGER, [thursday] INTEGER, [friday] INTEGER, [saturday] INTEGER, [sunday] INTEGER, [start_date] INTEGER, [end_date] INTEGER );");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [calendar_date] ( [FEED_ID] INTEGER NOT NULL, [service_id] TEXT NOT NULL, [date] INTEGER, [exception_type] INTEGER );");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [fare_attribute] ( [FEED_ID] INTEGER NOT NULL, [fare_id] TEXT NOT NULL, [price] TEXT, [currency_type] TEXT, [payment_method] INTEGER, [transfers] INTEGER, [transfer_duration] TEXT );");
@@ -192,15 +227,81 @@ namespace GTFS.DB.SQLite
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [stop_time] ( [FEED_ID] INTEGER NOT NULL, [trip_id] TEXT NOT NULL, [arrival_time] INTEGER, [departure_time] INTEGER, [stop_id] TEXT, [stop_sequence] INTEGER, [stop_headsign] TEXT, [pickup_type] INTEGER, [drop_off_type] INTEGER, [shape_dist_traveled] TEXT );");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [transfer] ( [FEED_ID] INTEGER NOT NULL, [from_stop_id] TEXT, [to_stop_id] TEXT, [transfer_type] INTEGER, [min_transfer_time] TEXT );");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [trip] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [route_id] TEXT, [service_id] TEXT, [trip_headsign] TEXT, [trip_short_name] TEXT, [direction_id] INTEGER, [block_id] TEXT, [shape_id] TEXT, [wheelchair_accessible] INTEGER );");
+            // CREATE TABLE TO STORE RESERVED IDS
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [reservedids] ( [base_name] TEXT, [reserved_id] TEXT);");
+            // CREATE TABLE TO STORE PREFERENCES
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [preferences] ( [preference] TEXT, [value] TEXT);");
             // CREATE TABLE TO STORE GPX FILENAMES AND TABLE TO STORE CLEANED STOP IDS
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [gpx_filenames] ( [route_id] TEXT, [gpx_filename] TEXT);");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [cleaned_stops] ( [stop_id] TEXT);");
             // CREATE TABLE TO STORE LOGS OF EDITS
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [log] ( [timestamp] TEXT, [action] TEXT, [route_id] TEXT, [pc_name] TEXT, [pc_ip] TEXT, [note] TEXT);");
+            // CREATE TABLE TO STORE POLYGONS
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [polygons] ( [id] TEXT NOT NULL, [poly_pt_lat] REAL, [poly_pt_lon] REAL, [poly_pt_seq] INTEGER );");
             // CREATE DATABASE INDEXES FOR EFFICIENT LOOKUP
             this.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS stop_idx ON stop (id)");
             this.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS shape_idx ON shape (id)");
             this.ExecuteNonQuery("CREATE INDEX IF NOT EXISTS stoptimes_idx ON stop_time (trip_id)");
+
+
+            // Alter existing tables, if their structure is incorrect, for backwards compatibility
+            //  1. add agency_email column to agency
+            if (!ColumnExists("agency", "agency_email")) this.ExecuteNonQuery("ALTER TABLE [agency] ADD [agency_email] TEXT;");
+            
+        }
+
+        /// <summary>
+        /// Checks if a table with the given name exists in this database.
+        /// </summary>
+        /// <param name="tableName">The table in this database to look for.</param>
+        /// <returns>True if th</returns>
+        private bool TableExists(string tableName)
+        {
+            using (var command = new SQLiteCommand("SELECT name FROM sqlite_master WHERE type='table' AND name='" + tableName + "';", _connection))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var value = reader.GetValue(0);
+                        if (tableName.Equals(value))
+                        {
+                            reader.Close();
+                            return true;
+                        }
+                    }
+                    reader.Close();
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Checks if the given table contains a column with the given name.
+        /// </summary>
+        /// <param name="tableName">The table in this database to check.</param>
+        /// <param name="columnName">The column in the given table to look for.</param>
+        /// <returns>True if the given table contains a column with the given name.</returns>
+        private bool ColumnExists(string tableName, string columnName)
+        {
+            using (var command = new SQLiteCommand("PRAGMA table_info(" + tableName + ")", _connection))
+            {
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        var value = reader.GetValue(1);//column 1 from the result contains the column names
+                        if (columnName.Equals(value))
+                        {
+                            reader.Close();
+                            return true;
+                        }
+                    }
+
+                    reader.Close();
+                    return false;
+                }
+            }
         }
 
         /// <summary>
@@ -232,6 +333,25 @@ namespace GTFS.DB.SQLite
                 command.CommandText = sql;
                 return command.ExecuteNonQuery();
             }
+        }
+
+        public void CloseConnection()
+        {
+            _connection.Close();
+        }
+
+        /// <summary>
+        /// Deletes and recreates the routes, trips, stops, stop_times, frequencies and calendar_dates tables in a sorted order - may take some time
+        /// </summary>
+        public void SortAllTables()
+        {
+            SortRoutes();
+            SortTrips();
+            SortStops();
+            SortStopTimes();
+            SortFrequencies();
+            SortCalendars();
+            SortCalendarDates();
         }
 
         /// <summary>
@@ -289,6 +409,14 @@ namespace GTFS.DB.SQLite
             this.ExecuteNonQuery("ALTER TABLE frequency_sorted RENAME TO frequency");
         }
 
+        public void SortCalendars()
+        {
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [calendar_sorted] ( [FEED_ID] INTEGER NOT NULL, [service_id] TEXT NOT NULL, [monday] INTEGER, [tuesday] INTEGER, [wednesday] INTEGER, [thursday] INTEGER, [friday] INTEGER, [saturday] INTEGER, [sunday] INTEGER, [start_date] INTEGER, [end_date] INTEGER );");
+            this.ExecuteNonQuery("INSERT INTO calendar_sorted (FEED_ID, service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date) SELECT FEED_ID, service_id, monday, tuesday, wednesday, thursday, friday, saturday, sunday, start_date, end_date FROM calendar ORDER BY service_id ASC;");
+            this.ExecuteNonQuery("DROP TABLE calendar");
+            this.ExecuteNonQuery("ALTER TABLE calendar_sorted RENAME TO calendar");
+        }
+
         /// <summary>
         /// Deletes and recreates the calendar_dates table in a sorted order (first by date then by exception_type) - may take time
         /// </summary>
@@ -298,6 +426,17 @@ namespace GTFS.DB.SQLite
             this.ExecuteNonQuery("INSERT INTO calendar_date_sorted (FEED_ID, service_id, date, exception_type) SELECT FEED_ID, service_id, date, exception_type FROM calendar_date ORDER BY date, exception_type ASC;");
             this.ExecuteNonQuery("DROP TABLE calendar_date");
             this.ExecuteNonQuery("ALTER TABLE calendar_date_sorted RENAME TO calendar_date");
+        }
+
+        /// <summary>
+        /// Deletes and recreates the polygons table in a sorted order (first by id then by poly_pt_seq) - may take time
+        /// </summary>
+        public void SortPolygons()//TODO: test!
+        {
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [polygons_sorted] ( [id] TEXT NOT NULL, [poly_pt_lat] REAL, [poly_pt_lon] REAL, [poly_pt_seq] INTEGER );");
+            this.ExecuteNonQuery("INSERT INTO polygons_sorted (id, poly_pt_lat, poly_pt_lon, poly_pt_seq) SELECT id, poly_pt_lat, poly_pt_lon, poly_pt_seq FROM polygons ORDER BY id ASC, poly_pt_seq ASC;");
+            this.ExecuteNonQuery("DROP TABLE polygons");
+            this.ExecuteNonQuery("ALTER TABLE polygons_sorted RENAME TO polygons");
         }
     }
 }

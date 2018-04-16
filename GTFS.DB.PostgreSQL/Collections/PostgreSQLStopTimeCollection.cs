@@ -23,22 +23,23 @@
 using GTFS.Entities;
 using GTFS.Entities.Collections;
 using GTFS.Entities.Enumerations;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SQLite;
+using System.Linq;
 
-namespace GTFS.DB.SQLite.Collections
+namespace GTFS.DB.PostgreSQL.Collections
 {
     /// <summary>
     /// Represents a collection of StopTimes using an SQLite database.
     /// </summary>
-    public class SQLiteStopTimeCollection : IStopTimeCollection
+    public class PostgreSQLStopTimeCollection : IStopTimeCollection
     {
         /// <summary>
         /// Holds the connection.
         /// </summary>
-        private SQLiteConnection _connection;
+        private NpgsqlConnection _connection;
 
         /// <summary>
         /// Holds the id.
@@ -50,7 +51,7 @@ namespace GTFS.DB.SQLite.Collections
         /// </summary>
         /// <param name="connection"></param>
         /// <param name="id"></param>
-        internal SQLiteStopTimeCollection(SQLiteConnection connection, int id)
+        internal PostgreSQLStopTimeCollection(NpgsqlConnection connection, int id)
         {
             _connection = connection;
             _id = id;
@@ -66,16 +67,16 @@ namespace GTFS.DB.SQLite.Collections
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
-                command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"arrival_time", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"departure_time", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"stop_sequence", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_headsign", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"pickup_type", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"drop_off_type", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"shape_dist_traveled", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"arrival_time", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"departure_time", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_sequence", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_headsign", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"pickup_type", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"drop_off_type", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"shape_dist_traveled", DbType.String));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = stopTime.TripId;
@@ -88,45 +89,28 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[8].Value = stopTime.DropOffType.HasValue ? (int?)stopTime.DropOffType.Value : null;
                 command.Parameters[9].Value = stopTime.ShapeDistTravelled;
 
+                command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 command.ExecuteNonQuery();
             }
         }
 
         public void AddRange(IEnumerable<StopTime> entities)
         {
-            using (var command = _connection.CreateCommand())
+            using (var writer = _connection.BeginBinaryImport("COPY stop_time (feed_id, trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled) FROM STDIN (FORMAT BINARY)"))
             {
-                using (var transaction = _connection.BeginTransaction())
+                foreach (var stopTime in entities)
                 {
-                    foreach (var stopTime in entities)
-                    {
-                        string sql = "INSERT INTO stop_time VALUES (:feed_id, :trip_id, :arrival_time, :departure_time, :stop_id, :stop_sequence, :stop_headsign, :pickup_type, :drop_off_type, :shape_dist_traveled);";
-                        command.CommandText = sql;
-                        command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
-                        command.Parameters.Add(new SQLiteParameter(@"arrival_time", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"departure_time", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
-                        command.Parameters.Add(new SQLiteParameter(@"stop_sequence", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"stop_headsign", DbType.String));
-                        command.Parameters.Add(new SQLiteParameter(@"pickup_type", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"drop_off_type", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"shape_dist_traveled", DbType.String));
-
-                        command.Parameters[0].Value = _id;
-                        command.Parameters[1].Value = stopTime.TripId;
-                        command.Parameters[2].Value = stopTime.ArrivalTime.TotalSeconds;
-                        command.Parameters[3].Value = stopTime.DepartureTime.TotalSeconds;
-                        command.Parameters[4].Value = stopTime.StopId;
-                        command.Parameters[5].Value = stopTime.StopSequence;
-                        command.Parameters[6].Value = stopTime.StopHeadsign;
-                        command.Parameters[7].Value = stopTime.PickupType.HasValue ? (int?)stopTime.PickupType.Value : null;
-                        command.Parameters[8].Value = stopTime.DropOffType.HasValue ? (int?)stopTime.DropOffType.Value : null;
-                        command.Parameters[9].Value = stopTime.ShapeDistTravelled;
-
-                        command.ExecuteNonQuery();
-                    }
-                    transaction.Commit();
+                    writer.StartRow();
+                    writer.Write(_id, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(stopTime.TripId, NpgsqlTypes.NpgsqlDbType.Text);
+                    writer.Write(stopTime.ArrivalTime.TotalSeconds, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(stopTime.DepartureTime.TotalSeconds, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(stopTime.StopId, NpgsqlTypes.NpgsqlDbType.Text);
+                    writer.Write(stopTime.StopSequence, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(stopTime.StopHeadsign, NpgsqlTypes.NpgsqlDbType.Text);
+                    writer.Write(stopTime.PickupType, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(stopTime.DropOffType, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(stopTime.ShapeDistTravelled, NpgsqlTypes.NpgsqlDbType.Text);
                 }
             }
         }
@@ -137,18 +121,18 @@ namespace GTFS.DB.SQLite.Collections
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
-                command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"arrival_time", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"departure_time", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"stop_sequence", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_headsign", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"pickup_type", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"drop_off_type", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"shape_dist_traveled", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"oldStopId", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"oldTripId", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"arrival_time", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"departure_time", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_sequence", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_headsign", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"pickup_type", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"drop_off_type", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"shape_dist_traveled", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"oldStopId", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"oldTripId", DbType.String));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = newEntity.TripId;
@@ -163,6 +147,7 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[10].Value = stopId;
                 command.Parameters[11].Value = tripId;
 
+                command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 return command.ExecuteNonQuery() > 0;
             }
         }
@@ -173,19 +158,19 @@ namespace GTFS.DB.SQLite.Collections
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
-                command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"arrival_time", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"departure_time", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"stop_sequence", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_headsign", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"pickup_type", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"drop_off_type", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"shape_dist_traveled", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"oldStopId", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"oldTripId", DbType.String));
-                command.Parameters.Add(new SQLiteParameter(@"oldStopSequence", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"arrival_time", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"departure_time", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_sequence", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_headsign", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"pickup_type", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"drop_off_type", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"shape_dist_traveled", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"oldStopId", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"oldTripId", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"oldStopSequence", DbType.String));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = newEntity.TripId;
@@ -201,6 +186,7 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[11].Value = tripId;
                 command.Parameters[12].Value = stopSequence;
 
+                command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 return command.ExecuteNonQuery() > 0;
             }
         }
@@ -215,12 +201,12 @@ namespace GTFS.DB.SQLite.Collections
                     {
                         string sql = "DELETE FROM stop_time WHERE FEED_ID = :feed_id AND trip_id = :trip_id AND arrival_time = :arrival_time AND departure_time = :departure_time and stop_id = :stop_id AND stop_sequence = :stop_sequence;";
                         command.CommandText = sql;
-                        command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
-                        command.Parameters.Add(new SQLiteParameter(@"arrival_time", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"departure_time", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
-                        command.Parameters.Add(new SQLiteParameter(@"stop_sequence", DbType.Int64));
+                        command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                        command.Parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
+                        command.Parameters.Add(new NpgsqlParameter(@"arrival_time", DbType.Int64));
+                        command.Parameters.Add(new NpgsqlParameter(@"departure_time", DbType.Int64));
+                        command.Parameters.Add(new NpgsqlParameter(@"stop_id", DbType.String));
+                        command.Parameters.Add(new NpgsqlParameter(@"stop_sequence", DbType.Int64));
                         
                         command.Parameters[0].Value = _id;
                         command.Parameters[1].Value = stopTime.TripId;
@@ -228,7 +214,8 @@ namespace GTFS.DB.SQLite.Collections
                         command.Parameters[3].Value = stopTime.DepartureTime.TotalSeconds;
                         command.Parameters[4].Value = stopTime.StopId;
                         command.Parameters[5].Value = stopTime.StopSequence;
-                        
+
+                        command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                         command.ExecuteNonQuery();
                     }
                     transaction.Commit();
@@ -242,9 +229,10 @@ namespace GTFS.DB.SQLite.Collections
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
-                command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
 
                 command.Parameters[0].Value = _id;
+                command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 command.ExecuteNonQuery();
             }
         }
@@ -255,26 +243,35 @@ namespace GTFS.DB.SQLite.Collections
         /// <returns></returns>
         public IEnumerable<StopTime> Get()
         {
-            string sql = "SELECT trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled FROM stop_time WHERE FEED_ID = :id";
-            var parameters = new List<SQLiteParameter>();
-            parameters.Add(new SQLiteParameter(@"id", DbType.Int64));
-            parameters[0].Value = _id;
-
-            return new SQLiteEnumerable<StopTime>(_connection, sql, parameters.ToArray(), (x) =>
+            #if DEBUG
+            var stopwatch = new System.Diagnostics.Stopwatch();
+            stopwatch.Start();
+            #endif
+            var stopTimes = new List<StopTime>();
+            using (var reader = _connection.BeginBinaryExport("COPY stop_time TO STDOUT (FORMAT BINARY)"))
             {
-                return new StopTime()
+                while (reader.StartRow() > 0)
                 {
-                    TripId = x.GetString(0),
-                    ArrivalTime = TimeOfDay.FromTotalSeconds(x.GetInt32(1)),
-                    DepartureTime = TimeOfDay.FromTotalSeconds(x.GetInt32(2)),
-                    StopId = x.GetString(3),
-                    StopSequence = (uint)x.GetInt32(4),
-                    StopHeadsign = x.IsDBNull(5) ? null : x.GetString(5),
-                    PickupType = x.IsDBNull(6) ? null : (PickupType?)x.GetInt64(6),
-                    DropOffType = x.IsDBNull(7) ? null : (DropOffType?)x.GetInt64(7),
-                    ShapeDistTravelled = x.IsDBNull(8) ? null : x.GetString(8)
-                };
-            });
+                    var feedId = reader.Read<int>(NpgsqlTypes.NpgsqlDbType.Integer);
+                    stopTimes.Add(new StopTime()
+                    {
+                        TripId = reader.Read<string>(NpgsqlTypes.NpgsqlDbType.Text),
+                        ArrivalTime = TimeOfDay.FromTotalSeconds(reader.Read<int>(NpgsqlTypes.NpgsqlDbType.Integer)),
+                        DepartureTime = TimeOfDay.FromTotalSeconds(reader.Read<int>(NpgsqlTypes.NpgsqlDbType.Integer)),
+                        StopId = reader.Read<string>(NpgsqlTypes.NpgsqlDbType.Text),
+                        StopSequence = (uint)reader.Read<int>(NpgsqlTypes.NpgsqlDbType.Integer),
+                        StopHeadsign = reader.Read<string>(NpgsqlTypes.NpgsqlDbType.Text),
+                        PickupType = (PickupType?)reader.ReadIntSafe(),
+                        DropOffType = (DropOffType?)reader.ReadIntSafe(),
+                        ShapeDistTravelled = reader.Read<string>(NpgsqlTypes.NpgsqlDbType.Text)
+                    });
+                }
+            }
+            #if DEBUG
+            stopwatch.Stop();
+            Console.WriteLine($"Fetch stoptimes: {stopwatch.ElapsedMilliseconds} ms");
+            #endif
+            return stopTimes;
         }
 
         /// <summary>
@@ -283,14 +280,14 @@ namespace GTFS.DB.SQLite.Collections
         /// <returns></returns>
         public IEnumerable<StopTime> GetForTrip(string tripId)
         {
-            string sql = "SELECT trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled FROM stop_time WHERE FEED_ID = :id AND trip_id = :trip_id";
-            var parameters = new List<SQLiteParameter>();
-            parameters.Add(new SQLiteParameter(@"id", DbType.Int64));
+            string sql = "SELECT trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled FROM stop_time WHERE FEED_ID = :id AND trip_id = :trip_id ORDER BY stop_sequence";
+            var parameters = new List<NpgsqlParameter>();
+            parameters.Add(new NpgsqlParameter(@"id", DbType.Int64));
             parameters[0].Value = _id;
-            parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
+            parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
             parameters[1].Value = tripId;
 
-            return new SQLiteEnumerable<StopTime>(_connection, sql, parameters.ToArray(), (x) =>
+            return new PostgreSQLEnumerable<StopTime>(_connection, sql, parameters.ToArray(), (x) =>
             {
                 return new StopTime()
                 {
@@ -317,12 +314,13 @@ namespace GTFS.DB.SQLite.Collections
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
-                command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = tripId;
 
+                command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 return command.ExecuteNonQuery();
             }
         }
@@ -341,12 +339,13 @@ namespace GTFS.DB.SQLite.Collections
                     {
                         string sql = "DELETE FROM stop_time WHERE FEED_ID = :feed_id AND trip_id = :trip_id;";
                         command.CommandText = sql;
-                        command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                        command.Parameters.Add(new SQLiteParameter(@"trip_id", DbType.String));
+                        command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                        command.Parameters.Add(new NpgsqlParameter(@"trip_id", DbType.String));
 
                         command.Parameters[0].Value = _id;
                         command.Parameters[1].Value = tripId;
-                        
+
+                        command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                         command.ExecuteNonQuery();
                     }
                     transaction.Commit();
@@ -361,13 +360,13 @@ namespace GTFS.DB.SQLite.Collections
         public IEnumerable<StopTime> GetForStop(string stopId)
         {
             string sql = "SELECT trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled FROM stop_time WHERE FEED_ID = :id AND stop_id = :stop_id";
-            var parameters = new List<SQLiteParameter>();
-            parameters.Add(new SQLiteParameter(@"id", DbType.Int64));
+            var parameters = new List<NpgsqlParameter>();
+            parameters.Add(new NpgsqlParameter(@"id", DbType.Int64));
             parameters[0].Value = _id;
-            parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
+            parameters.Add(new NpgsqlParameter(@"stop_id", DbType.String));
             parameters[1].Value = stopId;
 
-            return new SQLiteEnumerable<StopTime>(_connection, sql, parameters.ToArray(), (x) =>
+            return new PostgreSQLEnumerable<StopTime>(_connection, sql, parameters.ToArray(), (x) =>
             {
                 return new StopTime()
                 {
@@ -394,8 +393,8 @@ namespace GTFS.DB.SQLite.Collections
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
-                command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
-                command.Parameters.Add(new SQLiteParameter(@"stop_id", DbType.String));
+                command.Parameters.Add(new NpgsqlParameter(@"feed_id", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"stop_id", DbType.String));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = stopId;
