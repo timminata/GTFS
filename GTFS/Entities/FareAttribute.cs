@@ -95,6 +95,7 @@ namespace GTFS.Entities
                 hash = hash * 29 + (this.Price ?? string.Empty).GetHashCode();
                 hash = hash * 29 + (this.TransferDuration ?? string.Empty).GetHashCode();
                 hash = hash * 29 + this.Transfers.GetHashCode();
+                hash = hash * 29 + (this.AgencyId ?? string.Empty).GetHashCode();
                 return hash;
             }
         }
@@ -112,7 +113,8 @@ namespace GTFS.Entities
                     this.PaymentMethod == other.PaymentMethod &&
                     (this.Price ?? string.Empty) == (other.Price ?? string.Empty) &&
                     (this.TransferDuration ?? string.Empty) == (other.TransferDuration ?? string.Empty) &&
-                    this.Transfers == other.Transfers;
+                    this.Transfers == other.Transfers &&
+                    (this.AgencyId ?? string.Empty) == (other.AgencyId ?? string.Empty);
             }
             return false;
         }
