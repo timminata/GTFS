@@ -67,6 +67,13 @@ namespace GTFS.Entities
         public uint? Transfers { get; set; }
 
         /// <summary>
+        /// Required for feeds with multiple agencies defined in the agency.txt file.
+        /// Each fare attribute must specify an agency_id value to indicate which agency the fare applies to.
+        /// </summary>
+        [FieldName("agency_id")]
+        public string AgencyId { get; set; }
+
+        /// <summary>
         /// Gets or sets the length of time in seconds before a transfer expires.
         /// </summary>
         [FieldName("transfer_duration")]
