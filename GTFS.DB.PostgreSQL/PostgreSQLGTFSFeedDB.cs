@@ -92,11 +92,25 @@ namespace GTFS.DB.PostgreSQL
 
             // Alter existing tables, if their structure is incorrect, for backwards compatibility
             //  1. add agency_email column to agency
-            if (!ColumnExists("agency", "agency_email")) this.ExecuteNonQuery("ALTER TABLE agency ADD COLUMN agency_email TEXT;");
+            if (!ColumnExists("agency", "agency_email"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE agency ADD COLUMN agency_email TEXT;");
+            }
             //  2. add passenger_boarding column to stop_time
-            if (!ColumnExists("stop_time", "passenger_boarding")) this.ExecuteNonQuery("ALTER TABLE stop_time ADD COLUMN passenger_boarding INTEGER;");
+            if (!ColumnExists("stop_time", "passenger_boarding"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE stop_time ADD COLUMN passenger_boarding INTEGER;");
+            }
             //  3. add passenger_alighting column to stop_time
-            if (!ColumnExists("stop_time", "passenger_alighting")) this.ExecuteNonQuery("ALTER TABLE stop_time ADD COLUMN passenger_alighting INTEGER;");
+            if (!ColumnExists("stop_time", "passenger_alighting"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE stop_time ADD COLUMN passenger_alighting INTEGER;");
+            }
+            //  4. add agency_id column to fare_attribute
+            if (!ColumnExists("fare_attribute", "agency_id"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE fare_attribute ADD agency_id TEXT;");
+            }
         }
 
         /// <summary>

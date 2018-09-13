@@ -329,7 +329,7 @@ namespace GTFS
             if (file != null)
             {
                 bool initialized = false;
-                var data = new string[6];
+                var data = new string[7];
                 foreach (var entity in entities)
                 {
                     if (!initialized)
@@ -346,6 +346,7 @@ namespace GTFS
                         data[3] = "payment_method";
                         data[4] = "transfers";
                         data[5] = "transfer_duration";
+                        data[6] = "agency_id";
                         file.Write(data);
                         initialized = true;
                     }
@@ -357,6 +358,7 @@ namespace GTFS
                     data[3] = this.WriteFieldPaymentMethod("fare_attributes", "payment_method", entity.PaymentMethod);
                     data[4] = this.WriteFieldUint("fare_attributes", "transfers", entity.Transfers);
                     data[5] = this.WriteFieldString("fare_attributes", "transfer_duration", entity.TransferDuration);
+                    data[6] = this.WriteFieldString("fare_attributes", "agency_id", entity.AgencyId);
                     file.Write(data);
                 }
                 file.Close();
