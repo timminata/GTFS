@@ -188,7 +188,7 @@ namespace GTFS.DB.PostgreSQL.Collections
                         Url = reader.ReadStringSafe(),
                         Color = reader.ReadIntSafe(),
                         TextColor = reader.ReadIntSafe(),
-                        VehicleCapacity = (int)reader.ReadIntSafe()
+                        VehicleCapacity = reader.ReadIntSafe()
                     });
                 }
             }
