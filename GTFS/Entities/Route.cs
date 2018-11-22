@@ -93,11 +93,10 @@ namespace GTFS.Entities
         public int? TextColor { get; set; }
 
         /// <summary>
-        /// CSIR FIELD
+        /// The number of windows
         /// </summary>
-        [Required]
         [FieldName("vehicle_capacity")]
-        public int VehicleCapacity { get; set; }
+        public int? VehicleCapacity { get; set; }
 
         /// <summary>
         /// Returns a description of this route.
@@ -170,8 +169,6 @@ namespace GTFS.Entities
                 TextColor = route.TextColor,
                 Type = route.Type,
                 Url = route.Url,
-
-                // CSIR Fields
                 VehicleCapacity = route.VehicleCapacity
             };
         }

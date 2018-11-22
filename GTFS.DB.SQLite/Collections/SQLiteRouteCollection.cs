@@ -201,7 +201,7 @@ namespace GTFS.DB.SQLite.Collections
                     Url = x.IsDBNull(6) ? null : x.GetString(6),
                     Color = x.IsDBNull(7) ? null : (int?)x.GetInt64(7),
                     TextColor = x.IsDBNull(8) ? null : (int?)x.GetInt64(8),
-                    VehicleCapacity = (int)x.GetInt64(9)
+                    VehicleCapacity = x.IsDBNull(9) ? null : (int?)x.GetInt64(9)
                 };
             });
         }
