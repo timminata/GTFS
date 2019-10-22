@@ -25,7 +25,7 @@ using GTFS.Attributes;
 namespace GTFS.Entities
 {
     /// <summary>
-    /// Represents a transit agency.
+    /// Represents a transit station level.
     /// </summary>
     [FileName("levels")]
     public class Level : GTFSEntity
@@ -33,6 +33,7 @@ namespace GTFS.Entities
         /// <summary>
         /// Id of the level that can be referenced from stops.txt.
         /// </summary>
+        [Required]
         [FieldName("level_id")]
         public string Id { get; set; }
 

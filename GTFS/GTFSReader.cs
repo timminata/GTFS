@@ -1179,6 +1179,12 @@ namespace GTFS
                 case "wheelchair_boarding":
                     stop.WheelchairBoarding = this.ParseFieldString(header.Name, fieldName, value);
                     break;
+                case "level_id":
+                    stop.LevelId = this.ParseFieldString(header.Name, fieldName, value);
+                    break;
+                case "platform_code":
+                    stop.PlatformCode = this.ParseFieldString(header.Name, fieldName, value);
+                    break;
             }
         }
 
@@ -1702,6 +1708,9 @@ namespace GTFS
 
             //0 or blank - Stop. A location where passengers board or disembark from a transit vehicle.
             //1 - Station. A physical structure or area that contains one or more stop.
+            //2 - Entrance/Exit.
+            //3 - Generic Node. 
+            //4 - Boarding Area.
 
             switch (value)
             {
@@ -1709,6 +1718,12 @@ namespace GTFS
                     return LocationType.Stop;
                 case "1":
                     return LocationType.Station;
+                case "2":
+                    return LocationType.EntranceExit;
+                case "3":
+                    return LocationType.GenericNode;
+                case "4":
+                    return LocationType.BoardingArea;
             }
             if(_strict)
             { // invalid location type.

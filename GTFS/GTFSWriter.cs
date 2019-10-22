@@ -594,7 +594,7 @@ namespace GTFS
             if (file != null)
             {
                 bool initialized = false;
-                var data = new string[12];
+                var data = new string[14];
                 foreach (var entity in entities)
                 {
                     if (!initialized)
@@ -617,6 +617,8 @@ namespace GTFS
                         data[9] = "parent_station";
                         data[10] = "stop_timezone";
                         data[11] = "wheelchair_boarding";
+                        data[12] = "level_id";
+                        data[13] = "platform_code";
                         file.Write(data);
                         initialized = true;
                     }
@@ -634,6 +636,8 @@ namespace GTFS
                     data[9] = this.WriteFieldString("stops", "parent_station", entity.ParentStation);
                     data[10] = this.WriteFieldString("stops", "stop_timezone", entity.Timezone);
                     data[11] = this.WriteFieldString("stops", "wheelchair_boarding", entity.WheelchairBoarding);
+                    data[12] = this.WriteFieldString("stops", "level_id", entity.LevelId);
+                    data[13] = this.WriteFieldString("stops", "platform_code", entity.PlatformCode);
                     file.Write(data);
                 }
                 file.Close();
@@ -978,13 +982,20 @@ namespace GTFS
         {
             if(value.HasValue)
             {
-                switch (value.Value)
+                return ((int)value.Value).ToString();
+                /*switch (value.Value)
                 {
                     case LocationType.Stop:
                         return "0";
                     case LocationType.Station:
                         return "1";
-                }
+                    case LocationType.EntranceExit:
+                        return "2";
+                    case LocationType.GenericNode:
+                        return "3";
+                    case LocationType.BoardingArea:
+                        return "4";
+                }*/
             }
             return string.Empty;
         }
