@@ -139,5 +139,13 @@ namespace GTFS
         {
             get;
         }
+
+        /// <summary>
+        /// Gets the collection of levels.
+        /// </summary>
+        IUniqueEntityCollection<Level> Levels
+        {
+            get;
+        }
     }
 }

@@ -67,6 +67,7 @@ namespace GTFS.DB.PostgreSQL
             this.StopTimes = new PostgreSQLStopTimeCollection(_connection, id);
             this.Transfers = new PostgreSQLTransferCollection(_connection, id);
             this.Trips = new PostgreSQLTripCollection(_connection, id);
+            this.Levels = new PostgreSQLLevelCollection(_connection, id);
         }
 
         /// <summary>
@@ -235,6 +236,15 @@ namespace GTFS.DB.PostgreSQL
         /// Gets the collection of trips.
         /// </summary>
         public IUniqueEntityCollection<Trip> Trips
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// Gets the collection of levels.
+        /// </summary>
+        public IUniqueEntityCollection<Level> Levels
         {
             get;
             private set;
