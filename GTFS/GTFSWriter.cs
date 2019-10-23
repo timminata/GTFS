@@ -131,6 +131,11 @@ namespace GTFS
             var tripIds = tripsToWrite.Select(x => x.Id).ToList();
             var stopTimesToWrite = feed.StopTimes.Where(x => tripIds.Contains(x.TripId)).ToList();
             var stopIds = stopTimesToWrite.Select(x => x.StopId).Distinct().ToList();
+            var fromStopIds = feed.Pathways.Select(x => x.FromStopId).ToList();
+            var toStopIds = feed.Pathways.Select(x => x.ToStopId).ToList();
+            stopIds.AddRange(fromStopIds);
+            stopIds.AddRange(toStopIds);
+            stopIds = stopIds.Distinct().ToList();
             var stopsToWrite = feed.Stops.Where(x => stopIds.Contains(x.Id)).ToList();
             
             //add stopsToWrite's stops' parent_stations not in stopsToWrite
@@ -152,6 +157,9 @@ namespace GTFS
             var serviceIds = tripsToWrite.Select(x => x.ServiceId).ToList();
             var calendarsToWrite = feed.Calendars.Where(x => serviceIds.Contains(x.ServiceId)).ToList();
             var calendarDatesToWrite = feed.CalendarDates.Where(x => serviceIds.Contains(x.ServiceId)).ToList();
+            var levelsToWrite = feed.Levels.ToList();
+            var pathwaysToWrite = feed.Pathways.ToList();
+            
 
             // remove null stops
             stopsToWrite = stopsToWrite.Where(x => x != null).ToList();
@@ -168,6 +176,8 @@ namespace GTFS
             stopTimesToWrite = stopTimesToWrite.OrderBy(x => x.TripId).ToList();
             shapesToWrite = shapesToWrite.OrderBy(x => x.Sequence).OrderBy(x => x.Id).ToList();
             tripsToWrite = tripsToWrite.OrderBy(x => x.Id).ToList();
+            levelsToWrite = levelsToWrite.OrderBy(x => x.Id).ToList();
+            pathwaysToWrite = pathwaysToWrite.OrderBy(x => x.Id).ToList();
 
             // write files on-by-one.
             this.Write(target.FirstOrDefault<IGTFSTargetFile>((x) => x.Name == "agency"), agenciesToWrite);
@@ -183,6 +193,8 @@ namespace GTFS
             this.Write(target.FirstOrDefault<IGTFSTargetFile>((x) => x.Name == "stop_times"), stopTimesToWrite);
             this.Write(target.FirstOrDefault<IGTFSTargetFile>((x) => x.Name == "transfers"), transfersToWrite);
             this.Write(target.FirstOrDefault<IGTFSTargetFile>((x) => x.Name == "trips"), tripsToWrite);
+            this.Write(target.FirstOrDefault<IGTFSTargetFile>((x) => x.Name == "levels"), levelsToWrite);
+            this.Write(target.FirstOrDefault<IGTFSTargetFile>((x) => x.Name == "pathways"), pathwaysToWrite);
         }
 
         /// <summary>
