@@ -89,8 +89,8 @@ namespace GTFS
             if (!writeAgencies && !writeRoutes) throw new Exception("One of the 2 booleans must be true!");
             if (writeAgencies && writeRoutes) throw new Exception("Only one of the 2 booleans may be true!");
 
-            List<Agency> agenciesToWrite = new List<Agency>();
-            List<Route> routesToWrite = new List<Route>();
+            var agenciesToWrite = new List<Agency>();
+            var routesToWrite = new List<Route>();
 
             if (writeAgencies)
             {
@@ -100,9 +100,9 @@ namespace GTFS
             else if (writeRoutes)
             {
                 routesToWrite = feed.Routes.Where(x => idsToWrite.Contains(x.Id)).ToList();
-                foreach (Route route in routesToWrite)
+                foreach (var route in routesToWrite)
                 {
-                    Agency agency = feed.Agencies.Where(x => route.AgencyId == x.Id).ToList().First();
+                    var agency = feed.Agencies.Where(x => route.AgencyId == x.Id).ToList().First();
                     if (!agenciesToWrite.Contains(agency))
                     {
                         agenciesToWrite.Add(agency);
@@ -116,8 +116,8 @@ namespace GTFS
             if (onlyTripsWithShapes) {
                 var allShapeIds = feed.Shapes.Select(x => x.Id).Distinct().ToList();
                 tripsToWrite = tripsToWrite.Where(x => allShapeIds.Contains(x.ShapeId)).ToList();
-                List<string> newRoutesToWriteIds = new List<string>();
-                foreach (Trip trip in tripsToWrite)
+                var newRoutesToWriteIds = new List<string>();
+                foreach (var trip in tripsToWrite)
                 {
                     if (!newRoutesToWriteIds.Contains(trip.RouteId))
                     {
@@ -138,13 +138,16 @@ namespace GTFS
             stopIds = stopIds.Distinct().ToList();
             var stopsToWrite = feed.Stops.Where(x => stopIds.Contains(x.Id)).ToList();
             
-            //add stopsToWrite's stops' parent_stations not in stopsToWrite
+            // add stopsToWrite's stops' parent_stations not in stopsToWrite
             var allStations = feed.Stops.Where(x => x.LocationType == LocationType.Station).ToList();
             var stopsToWrite_NotStations = stopsToWrite.Where(x => x.LocationType != LocationType.Station).ToList();
             foreach (var stop in stopsToWrite_NotStations)
             {
                 var station = allStations.FirstOrDefault(x => x.Id.Equals(stop.ParentStation));
-                if (!stopsToWrite.Contains(station)) stopsToWrite.Add(station);
+                if (!stopsToWrite.Contains(station)) 
+                { 
+                    stopsToWrite.Add(station); 
+                }
             }
 
             var transfersToWrite = feed.Transfers.Where(x => stopIds.Contains(x.FromStopId) || stopIds.Contains(x.ToStopId)).ToList();
