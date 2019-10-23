@@ -234,5 +234,15 @@ namespace GTFS.Entities
                 Tag = other.Tag
             };
         }
+
+        public bool IsTypeStop()
+        {
+            return !this.LocationType.HasValue || this.LocationType.Value == Enumerations.LocationType.Stop;
+        }
+
+        public bool IsTypeStation()
+        {
+            return this.LocationType.HasValue && this.LocationType.Value == Enumerations.LocationType.Station;
+        }
     }
 }
