@@ -187,11 +187,11 @@ namespace GTFS.DB.PostgreSQL.Collections
                     ToStopId = x.IsDBNull(2) ? null : x.GetString(2),
                     PathwayMode = (PathwayMode)x.GetInt16(3),
                     IsBidirectional = (IsBidirectional)x.GetInt16(4),
-                    Length = x.GetDouble(5),
+                    Length = x.IsDBNull(5) ? null : (double?)x.GetDouble(5),
                     TraversalTime = x.IsDBNull(6) ? null : (int?)x.GetInt32(6),
                     StairCount = x.IsDBNull(7) ? null : (int?)x.GetInt32(7),
-                    MaxSlope = x.GetDouble(8),
-                    MinWidth = x.GetDouble(9),
+                    MaxSlope = x.IsDBNull(8) ? null : (double?)x.GetDouble(8),
+                    MinWidth = x.IsDBNull(9) ? null : (double?)x.GetDouble(9),
                     SignpostedAs = x.IsDBNull(10) ? null : x.GetString(10),
                     ReversedSignpostedAs = x.IsDBNull(11) ? null : x.GetString(11)
                 };

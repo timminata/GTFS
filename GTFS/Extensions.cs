@@ -120,6 +120,8 @@ namespace GTFS
             feed.StopTimes.AddRange(thisFeed.StopTimes);
             feed.Transfers.AddRange(thisFeed.Transfers);           
             feed.Trips.AddRange(thisFeed.Trips);
+            feed.Levels.AddRange(thisFeed.Levels);
+            feed.Pathways.AddRange(thisFeed.Pathways);
         }
         
         /// <summary>

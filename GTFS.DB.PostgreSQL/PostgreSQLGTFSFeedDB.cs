@@ -307,6 +307,8 @@ namespace GTFS.DB.PostgreSQL
             this.RemoveAll("stop_time", id);
             this.RemoveAll("transfer", id);
             this.RemoveAll("trip", id);
+            this.RemoveAll("level", id);
+            this.RemoveAll("pathway", id);
 
             string sql = "DELETE FROM feed WHERE ID = :id"; ;
             using (var command = _connection.CreateCommand())
