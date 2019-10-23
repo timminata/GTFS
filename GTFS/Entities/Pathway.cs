@@ -64,7 +64,7 @@ namespace GTFS.Entities
         /// </summary>
         [Required]
         [FieldName("is_bidirectional")]
-        public PathwayMode IsBidirectional { get; set; }
+        public IsBidirectional IsBidirectional { get; set; }
 
         /// <summary>
         /// Horizontal length in meters of the pathway from the origin location (defined in from_stop_id) to the destination location (defined in to_stop_id)
