@@ -68,6 +68,7 @@ namespace GTFS.DB.PostgreSQL
             this.Transfers = new PostgreSQLTransferCollection(_connection, id);
             this.Trips = new PostgreSQLTripCollection(_connection, id);
             this.Levels = new PostgreSQLLevelCollection(_connection, id);
+            this.Pathways = new PostgreSQLPathwayCollection(_connection, id);
         }
 
         /// <summary>

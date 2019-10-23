@@ -92,7 +92,7 @@ namespace GTFS.DB.PostgreSQL.Collections
                     writer.StartRow();
                     writer.Write(_id, NpgsqlTypes.NpgsqlDbType.Integer);
                     writer.Write(level.Id, NpgsqlTypes.NpgsqlDbType.Text);
-                    writer.Write(level.Index, NpgsqlTypes.NpgsqlDbType.Double);
+                    writer.Write(level.Index, NpgsqlTypes.NpgsqlDbType.Real);
                     writer.Write(level.Name, NpgsqlTypes.NpgsqlDbType.Text);
                 }
             }
