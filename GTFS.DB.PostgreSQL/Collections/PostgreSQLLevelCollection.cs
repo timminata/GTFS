@@ -32,7 +32,7 @@ using System.Linq;
 namespace GTFS.DB.PostgreSQL.Collections
 {
     /// <summary>
-    /// Represents a collection of Levels using an Postgres database.
+    /// Represents a collection of Levels using a Postgres database.
     /// </summary>
     public class PostgreSQLLevelCollection : IUniqueEntityCollection<Level>
     {

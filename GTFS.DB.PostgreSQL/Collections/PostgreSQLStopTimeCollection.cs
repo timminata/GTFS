@@ -33,7 +33,7 @@ using System.Text;
 namespace GTFS.DB.PostgreSQL.Collections
 {
     /// <summary>
-    /// Represents a collection of StopTimes using an SQLite database.
+    /// Represents a collection of StopTimes using a Postgres database.
     /// </summary>
     public class PostgreSQLStopTimeCollection : IStopTimeCollection
     {

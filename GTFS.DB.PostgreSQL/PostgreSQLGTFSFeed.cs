@@ -249,5 +249,14 @@ namespace GTFS.DB.PostgreSQL
             get;
             private set;
         }
+
+        /// <summary>
+        /// Gets the collection of pathways.
+        /// </summary>
+        public IUniqueEntityCollection<Pathway> Pathways
+        {
+            get;
+            private set;
+        }
     }
 }

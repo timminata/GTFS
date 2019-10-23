@@ -33,7 +33,7 @@ using System.Linq;
 namespace GTFS.DB.PostgreSQL.Collections
 {
     /// <summary>
-    /// Represents a collection of Routes using an SQLite database.
+    /// Represents a collection of Routes using a Postgres database.
     /// </summary>
     public class PostgreSQLRouteCollection : IUniqueEntityCollection<Route>
     {

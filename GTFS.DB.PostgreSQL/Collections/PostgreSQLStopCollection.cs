@@ -32,7 +32,7 @@ using System.Linq;
 namespace GTFS.DB.PostgreSQL.Collections
 {
     /// <summary>
-    /// Represents a collection of Stops using an SQLite database.
+    /// Represents a collection of Stops using a Postgres database.
     /// </summary>
     public class PostgreSQLStopCollection : IUniqueEntityCollection<Stop>
     {

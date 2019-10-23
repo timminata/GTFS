@@ -147,5 +147,13 @@ namespace GTFS
         {
             get;
         }
+
+        /// <summary>
+        /// Gets the collection of pathways.
+        /// </summary>
+        IUniqueEntityCollection<Pathway> Pathways
+        {
+            get;
+        }
     }
 }

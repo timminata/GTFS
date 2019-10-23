@@ -66,6 +66,7 @@ namespace GTFS.DB.SQLite
             this.Transfers = new SQLiteTransferCollection(_connection, id);
             this.Trips = new SQLiteTripCollection(_connection, id);
             this.Levels = new SQLiteLevelCollection(_connection, id);
+            this.Pathways = new SQLitePathwayCollection(_connection, id);
         }
 
         /// <summary>
@@ -239,6 +240,12 @@ namespace GTFS.DB.SQLite
         }
 
         public IUniqueEntityCollection<Level> Levels
+        {
+            get;
+            private set;
+        }
+
+        public IUniqueEntityCollection<Pathway> Pathways
         {
             get;
             private set;
