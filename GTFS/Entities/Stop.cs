@@ -125,15 +125,35 @@ namespace GTFS.Entities
         /// <returns></returns>
         public override string ToString()
         {
-            var stationText = "";
-            if (this.LocationType == Enumerations.LocationType.Station) stationText = !this.Id.StartsWith("cluster_") ? " (station)" : " (cluster)";
+            var toStringSuffix = "";
+            if (this.LocationType.HasValue)
+            {
+                switch (this.LocationType.Value)
+                {
+                    case Enumerations.LocationType.Station:
+                        toStringSuffix = !this.Id.ToLower().Trim().StartsWith("cluster_") ? " (station)" : " (cluster)";
+                        break;
+                    case Enumerations.LocationType.EntranceExit:
+                        toStringSuffix = " (entrance/exit)";
+                        break;
+                    case Enumerations.LocationType.GenericNode:
+                        toStringSuffix = " (generic node)";
+                        break;
+                    case Enumerations.LocationType.BoardingArea:
+                        toStringSuffix = " (boarding area)";
+                        break;
+                    default:
+                        break;
+                }
+            }
+
             if (!string.IsNullOrWhiteSpace(this.Name))
             {
-                return this.Name + stationText;
+                return this.Name + toStringSuffix;
             }
             else
             {
-                return this.Id + stationText;
+                return this.Id + toStringSuffix;
             }
         }
 
