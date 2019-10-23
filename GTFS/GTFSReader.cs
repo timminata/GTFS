@@ -115,6 +115,8 @@ namespace GTFS
             this.StopTimeMap = new FieldMap();
             this.TransferMap = new FieldMap();
             this.TripMap = new FieldMap();
+            this.LevelMap = new FieldMap();
+            this.PathwayMap = new FieldMap();
         }
 
         /// <summary>
@@ -459,11 +461,6 @@ namespace GTFS
         }
 
         /// <summary>
-        /// Gets the agency fieldmap.
-        /// </summary>
-        public FieldMap AgencyMap { get; private set; }
-
-        /// <summary>
         /// Reads the agency file.
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
@@ -517,6 +514,12 @@ namespace GTFS
             }
         }
 
+
+        /// <summary>
+        /// Gets the pathway fieldmap.
+        /// </summary>
+        public FieldMap PathwayMap { get; private set; }
+
         /// <summary>
         /// Parses a pathway row.
         /// </summary>
@@ -528,11 +531,11 @@ namespace GTFS
         {
             // check required fields.
 
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "pathway_id");
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "from_stop_id");
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "to_stop_id");
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "pathway_mode");
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "is_bidirectional");
+            this.CheckRequiredField(header, header.Name, this.PathwayMap, "pathway_id");
+            this.CheckRequiredField(header, header.Name, this.PathwayMap, "from_stop_id");
+            this.CheckRequiredField(header, header.Name, this.PathwayMap, "to_stop_id");
+            this.CheckRequiredField(header, header.Name, this.PathwayMap, "pathway_mode");
+            this.CheckRequiredField(header, header.Name, this.PathwayMap, "is_bidirectional");
 
             // parse/set all fields.
             Pathway pathway = new Pathway();
@@ -558,10 +561,10 @@ namespace GTFS
                     pathway.Id = this.ParseFieldString(header.Name, fieldName, value);
                     break;
                 case "from_stop_id":
-                    pathway.Id = this.ParseFieldString(header.Name, fieldName, value);
+                    pathway.FromStopId = this.ParseFieldString(header.Name, fieldName, value);
                     break;
                 case "to_stop_id":
-                    pathway.Id = this.ParseFieldString(header.Name, fieldName, value);
+                    pathway.ToStopId = this.ParseFieldString(header.Name, fieldName, value);
                     break;
                 case "pathway_mode":
                     pathway.PathwayMode = (PathwayMode)this.ParseFieldPathwayMode(header.Name, fieldName, value);
@@ -594,6 +597,11 @@ namespace GTFS
         }
 
         /// <summary>
+        /// Gets the level fieldmap.
+        /// </summary>
+        public FieldMap LevelMap { get; private set; }
+
+        /// <summary>
         /// Parses a level row.
         /// </summary>
         /// <param name="feed"></param>
@@ -604,8 +612,8 @@ namespace GTFS
         {
             // check required fields.
 
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "level_id");
-            this.CheckRequiredField(header, header.Name, this.AgencyMap, "level_index");
+            this.CheckRequiredField(header, header.Name, this.LevelMap, "level_id");
+            this.CheckRequiredField(header, header.Name, this.LevelMap, "level_index");
 
             // parse/set all fields.
             Level level = new Level();
@@ -638,6 +646,11 @@ namespace GTFS
                     break;
             }
         }
+
+        /// <summary>
+        /// Gets the agency fieldmap.
+        /// </summary>
+        public FieldMap AgencyMap { get; private set; }
 
         /// <summary>
         /// Parses an agency row.
@@ -1018,7 +1031,7 @@ namespace GTFS
         }
 
         /// <summary>
-        /// Gets the frequence fieldmap.
+        /// Gets the frequency fieldmap.
         /// </summary>
         public FieldMap FrequencyMap { get; private set; }
 

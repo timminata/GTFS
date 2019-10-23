@@ -63,7 +63,7 @@ namespace GTFS.DB.PostgreSQL.Collections
         /// <param name="entity"></param>
         public void Add(Pathway entity)
         {
-            string sql = "INSERT INTO pathways VALUES (:feed_id, :pathway_id, :from_stop_id, :to_stop_id, :pathway_mode, :is_bidirectional, :length, :traversal_time, :stair_count, :max_slope, :min_width, :signposted_as, :reversed_signposted_as );";
+            string sql = "INSERT INTO pathway VALUES (:feed_id, :pathway_id, :from_stop_id, :to_stop_id, :pathway_mode, :is_bidirectional, :length, :traversal_time, :stair_count, :max_slope, :min_width, :signposted_as, :reversed_signposted_as );";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -103,7 +103,7 @@ namespace GTFS.DB.PostgreSQL.Collections
 
         public void AddRange(IUniqueEntityCollection<Pathway> entities)
         {
-            using (var writer = _connection.BeginBinaryImport("COPY pathways (feed_id, pathway_id, from_stop_id, to_stop_id, pathway_mode, is_bidirectional, length, traversal_time, stair_count, max_slope, min_width, signposted_as, reversed_signposted_as) FROM STDIN (FORMAT BINARY)"))
+            using (var writer = _connection.BeginBinaryImport("COPY pathway (feed_id, pathway_id, from_stop_id, to_stop_id, pathway_mode, is_bidirectional, length, traversal_time, stair_count, max_slope, min_width, signposted_as, reversed_signposted_as) FROM STDIN (FORMAT BINARY)"))
             {
                 foreach (var pathway in entities)
                 {
@@ -152,7 +152,7 @@ namespace GTFS.DB.PostgreSQL.Collections
         /// <returns></returns>
         public bool Remove(string entityId)
         {
-            string sql = "DELETE FROM pathways WHERE FEED_ID = :feed_id AND pathway_id = :pathway_id;";
+            string sql = "DELETE FROM pathway WHERE FEED_ID = :feed_id AND pathway_id = :pathway_id;";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -173,7 +173,7 @@ namespace GTFS.DB.PostgreSQL.Collections
         /// <returns></returns>
         public IEnumerable<Pathway> Get()
         {
-            string sql = "SELECT pathway_id, from_stop_id, to_stop_id, pathway_mode, is_bidirectional, length, traversal_time, stair_count, max_slope, min_width, signposted_as, reversed_signposted_as FROM pathways WHERE FEED_ID = :id";
+            string sql = "SELECT pathway_id, from_stop_id, to_stop_id, pathway_mode, is_bidirectional, length, traversal_time, stair_count, max_slope, min_width, signposted_as, reversed_signposted_as FROM pathway WHERE FEED_ID = :id";
             var parameters = new List<NpgsqlParameter>();
             parameters.Add(new NpgsqlParameter(@"id", DbType.Int64));
             parameters[0].Value = _id;
@@ -212,7 +212,7 @@ namespace GTFS.DB.PostgreSQL.Collections
             var outList = new List<string>();
             using (var command = _connection.CreateCommand())
             {
-                command.CommandText = "SELECT pathway_id FROM pathways";
+                command.CommandText = "SELECT pathway_id FROM pathway";
                 using (var reader = command.ExecuteReader())
                 {
                     while (reader.Read())
@@ -235,7 +235,7 @@ namespace GTFS.DB.PostgreSQL.Collections
         {
             get
             {
-                string sql = "SELECT count(pathway_id) FROM pathways;";
+                string sql = "SELECT count(pathway_id) FROM pathway;";
                 using (var command = _connection.CreateCommand())
                 {
                     command.CommandText = sql;
@@ -264,7 +264,7 @@ namespace GTFS.DB.PostgreSQL.Collections
 
         public bool Update(string entityId, Pathway entity)
         {
-            string sql = "UPDATE pathways SET FEED_ID=:feed_id, pathway_id=:pathway_id, from_stop_id=:from_stop_id, to_stop_id=:to_stop_id, pathway_mode=:pathway_mode, is_bidirectional=:is_bidirectional, length=:length, traversal_time=:traversal_time, stair_count=:stair_count, max_slope=:max_slope, min_width=:min_width, signposted_as=:signposted_as, reversed_signposted_as=:reversed_signposted_as WHERE id=:entityId;";
+            string sql = "UPDATE pathway SET FEED_ID=:feed_id, pathway_id=:pathway_id, from_stop_id=:from_stop_id, to_stop_id=:to_stop_id, pathway_mode=:pathway_mode, is_bidirectional=:is_bidirectional, length=:length, traversal_time=:traversal_time, stair_count=:stair_count, max_slope=:max_slope, min_width=:min_width, signposted_as=:signposted_as, reversed_signposted_as=:reversed_signposted_as WHERE id=:entityId;";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;

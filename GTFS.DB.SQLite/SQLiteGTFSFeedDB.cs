@@ -227,8 +227,8 @@ namespace GTFS.DB.SQLite
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [stop_time] ( [FEED_ID] INTEGER NOT NULL, [trip_id] TEXT NOT NULL, [arrival_time] INTEGER, [departure_time] INTEGER, [stop_id] TEXT, [stop_sequence] INTEGER, [stop_headsign] TEXT, [pickup_type] INTEGER, [drop_off_type] INTEGER, [shape_dist_traveled] TEXT, [passenger_boarding] INTEGER, [passenger_alighting] INTEGER, [through_passengers] INTEGER, [total_passengers] INTEGER);");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [transfer] ( [FEED_ID] INTEGER NOT NULL, [from_stop_id] TEXT, [to_stop_id] TEXT, [transfer_type] INTEGER, [min_transfer_time] TEXT );");
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [trip] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [route_id] TEXT, [service_id] TEXT, [trip_headsign] TEXT, [trip_short_name] TEXT, [direction_id] INTEGER, [block_id] TEXT, [shape_id] TEXT, [wheelchair_accessible] INTEGER );");
-            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [pathways] ( [FEED_ID] INTEGER NOT NULL, [pathway_id] TEXT NOT NULL, [from_stop_id] TEXT NOT NULL, [to_stop_id] TEXT NOT NULL, [pathway_mode] INTEGER NOT NULL, [is_bidirectional] INTEGER NOT NULL, [length] REAL, [traversal_time] INTEGER, [stair_count] INTEGER, [max_slope] REAL, [min_width] REAL, [signposted_as] TEXT, [reversed_signposted_as] TEXT);");
-            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [levels] ( [FEED_ID] INTEGER NOT NULL, [level_id] TEXT NOT NULL, [level_index] REAL, [level_name] TEXT);");
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [pathway] ( [FEED_ID] INTEGER NOT NULL, [pathway_id] TEXT NOT NULL, [from_stop_id] TEXT NOT NULL, [to_stop_id] TEXT NOT NULL, [pathway_mode] INTEGER NOT NULL, [is_bidirectional] INTEGER NOT NULL, [length] REAL, [traversal_time] INTEGER, [stair_count] INTEGER, [max_slope] REAL, [min_width] REAL, [signposted_as] TEXT, [reversed_signposted_as] TEXT);");
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [level] ( [FEED_ID] INTEGER NOT NULL, [level_id] TEXT NOT NULL, [level_index] REAL, [level_name] TEXT);");
             // CREATE TABLE TO STORE RESERVED IDS
             this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [reservedids] ( [base_name] TEXT, [reserved_id] TEXT);");
             // CREATE TABLE TO STORE PREFERENCES
@@ -460,8 +460,8 @@ namespace GTFS.DB.SQLite
         /// </summary>
         public void SortStops()
         {
-            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [stop_sorted] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [stop_code] TEXT, [stop_name] TEXT, [stop_desc] TEXT, [stop_lat] REAL, [stop_lon] REAL, [zone_id] TEXT, [stop_url] TEXT, [location_type] INTEGER, [parent_station] TEXT, [stop_timezone] TEXT, [wheelchair_boarding] TEXT );");
-            this.ExecuteNonQuery("INSERT INTO stop_sorted (FEED_ID, id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, zone_id, stop_url, location_type, parent_station, stop_timezone, wheelchair_boarding) SELECT FEED_ID, id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, zone_id, stop_url, location_type, parent_station, stop_timezone, wheelchair_boarding FROM stop ORDER BY id ASC;");
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [stop_sorted] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [stop_code] TEXT, [stop_name] TEXT, [stop_desc] TEXT, [stop_lat] REAL, [stop_lon] REAL, [zone_id] TEXT, [stop_url] TEXT, [location_type] INTEGER, [parent_station] TEXT, [stop_timezone] TEXT, [wheelchair_boarding] TEXT, [level_id] TEXT, [platform_code] TEXT);");
+            this.ExecuteNonQuery("INSERT INTO stop_sorted (FEED_ID, id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, zone_id, stop_url, location_type, parent_station, stop_timezone, wheelchair_boarding, level_id, platform_code) SELECT FEED_ID, id, stop_code, stop_name, stop_desc, stop_lat, stop_lon, zone_id, stop_url, location_type, parent_station, stop_timezone, wheelchair_boarding, level_id, platform_code FROM stop ORDER BY id ASC;");
             this.ExecuteNonQuery("DROP TABLE stop");
             this.ExecuteNonQuery("ALTER TABLE stop_sorted RENAME TO stop");
         }
