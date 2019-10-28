@@ -182,6 +182,14 @@ namespace GTFS
             {
                 thisFeed.Trips.AddOrReplace(entity, x => x.Id);
             }
+            foreach (var entity in feed.Levels)
+            {
+                thisFeed.Levels.AddOrReplace(entity, x => x.Id);
+            }
+            foreach (var entity in feed.Pathways)
+            {
+                thisFeed.Pathways.AddOrReplace(entity, x => x.Id);
+            }
         }
 
         /// <summary>

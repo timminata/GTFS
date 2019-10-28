@@ -514,7 +514,6 @@ namespace GTFS
             }
         }
 
-
         /// <summary>
         /// Gets the pathway fieldmap.
         /// </summary>
@@ -1347,8 +1346,6 @@ namespace GTFS
             this.CheckRequiredField(header, header.Name, this.StopTimeMap, "departure_time");
             this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_id");
             this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_sequence");
-            this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_id");
-            this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_id");
 
             // parse/set all fields.
             StopTime stopTime = new StopTime();
