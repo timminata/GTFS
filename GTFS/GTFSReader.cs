@@ -514,7 +514,6 @@ namespace GTFS
             }
         }
 
-
         /// <summary>
         /// Gets the pathway fieldmap.
         /// </summary>
@@ -1281,26 +1280,24 @@ namespace GTFS
                     stop.Description = this.ParseFieldString(header.Name, fieldName, value);
                     break;
                 case "stop_lat":
-                    var parsedDouble = this.ParseFieldDouble(header.Name, fieldName, value);
-                    if (parsedDouble == null)
+                    var lat = this.ParseFieldDouble(header.Name, fieldName, value);
+
+                    if (this._strict && !lat.HasValue)
                     {
                         throw new GTFSParseException(header.Name, fieldName, value);
                     }
-                    else
-                    {
-                        stop.Latitude = parsedDouble.Value;
-                    }
+
+                    stop.Latitude = lat.HasValue ? lat.Value : 0d;
                     break;
                 case "stop_lon":
-                    var parseDouble = this.ParseFieldDouble(header.Name, fieldName, value);
-                    if (parseDouble == null)
+                    var lon = this.ParseFieldDouble(header.Name, fieldName, value);
+
+                    if (this._strict && !lon.HasValue)
                     {
                         throw new GTFSParseException(header.Name, fieldName, value);
                     }
-                    else
-                    {
-                        stop.Longitude = parseDouble.Value;
-                    }
+
+                    stop.Longitude = lon.HasValue ? lon.Value : 0d;
                     break;
                 case "zone_id":
                     stop.Zone = this.ParseFieldString(header.Name, fieldName, value);
@@ -1349,8 +1346,6 @@ namespace GTFS
             this.CheckRequiredField(header, header.Name, this.StopTimeMap, "departure_time");
             this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_id");
             this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_sequence");
-            this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_id");
-            this.CheckRequiredField(header, header.Name, this.StopTimeMap, "stop_id");
 
             // parse/set all fields.
             StopTime stopTime = new StopTime();
