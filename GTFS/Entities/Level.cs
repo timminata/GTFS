@@ -57,7 +57,7 @@ namespace GTFS.Entities
         /// <returns></returns>
         public override string ToString()
         {
-            return $"{this.Name} ({this.Index})";
+            return $"({this.Index}) {this.Name}";
         }
 
         /// <summary>
