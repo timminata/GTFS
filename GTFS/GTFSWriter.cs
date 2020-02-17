@@ -53,7 +53,7 @@ namespace GTFS
             var routesToWrite = feed.Routes.OrderBy(x => x.ToString()).ToList();
             var stopsToWrite = feed.Stops.OrderBy(x => x.Name ?? x.Id).ToList();
             var stopTimesToWrite = feed.StopTimes.OrderBy(x => x.StopSequence).OrderBy(x => x.TripId).ToList();
-            var tripsToWrite = feed.Trips.OrderBy(x => x.RouteId).OrderBy(x => x.Id).ToList();
+            var tripsToWrite = feed.Trips.OrderBy(x => x.Id).OrderBy(x => x.RouteId).ToList();
             var levelsToWrite = feed.Levels.OrderBy(x => x.Id).ToList();
             var pathwaysToWrite = feed.Pathways.OrderBy(x => x.Id).ToList();
 
@@ -188,7 +188,7 @@ namespace GTFS
             stopsToWrite = stopsToWrite.OrderBy(x => x.Name ?? x.Id).ToList();
             stopTimesToWrite = stopTimesToWrite.OrderBy(x => x.StopSequence).OrderBy(x => x.TripId).ToList();
             shapesToWrite = shapesToWrite.OrderBy(x => x.Sequence).OrderBy(x => x.Id).ToList();
-            tripsToWrite = tripsToWrite.OrderBy(x => x.RouteId).OrderBy(x => x.Id).ToList();
+            tripsToWrite = tripsToWrite.OrderBy(x => x.Id).OrderBy(x => x.RouteId).ToList();
             levelsToWrite = levelsToWrite.OrderBy(x => x.Id).ToList();
             pathwaysToWrite = pathwaysToWrite.OrderBy(x => x.Id).ToList();
 
