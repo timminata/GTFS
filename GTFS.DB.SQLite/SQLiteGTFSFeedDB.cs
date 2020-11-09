@@ -342,7 +342,7 @@ namespace GTFS.DB.SQLite
             {
                 this.ExecuteNonQuery("ALTER TABLE [stop_time] ADD [continuous_pickup] INTEGER;");
             }
-            //  7.4 add continuous_drop_off column to route
+            //  7.4 add continuous_drop_off column to stop_time
             if (!ColumnExists("stop_time", "continuous_drop_off"))
             {
                 this.ExecuteNonQuery("ALTER TABLE [stop_time] ADD [continuous_drop_off] INTEGER;");
