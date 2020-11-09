@@ -624,7 +624,7 @@ namespace GTFS
             if (file != null)
             {
                 bool initialized = false;
-                var data = new string[9];
+                var data = new string[11];
                 foreach (var entity in entities)
                 {
                     if (!initialized)
@@ -644,7 +644,9 @@ namespace GTFS
                         data[6] = "route_url";
                         data[7] = "route_color";
                         data[8] = "route_text_color";
-                        //data[9] = "vehicle_capacity";
+                        data[9] = "continuous_pickup";
+                        data[10] = "continuous_drop_off";
+                        //data[11] = "vehicle_capacity";
                         file.Write(data);
                         initialized = true;
                     }
@@ -659,7 +661,9 @@ namespace GTFS
                     data[6] = this.WriteFieldString("routes", "route_url", entity.Url);
                     data[7] = this.WriteFieldColor("routes", "route_color", entity.Color);
                     data[8] = this.WriteFieldColor("routes", "route_text_color", entity.TextColor);
-                    //data[9] = this.WriteFieldInt("routes", "vehicle_capacity", entity.VehicleCapacity);
+                    data[9] = this.WriteFieldContinuousPickup("routes", "continuous_pickup", entity.ContinuousPickup);
+                    data[10] = this.WriteFieldContinuousDropOff("routes", "continuous_drop_off", entity.ContinuousDropOff);
+                    //data[11] = this.WriteFieldInt("routes", "vehicle_capacity", entity.VehicleCapacity);
                     file.Write(data);
                 }
                 file.Close();
@@ -1170,6 +1174,58 @@ namespace GTFS
                     case PickupType.PhoneForPickup:
                         return "2";
                     case PickupType.DriverForPickup:
+                        return "3";
+                }
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Writes the continuous_pickup type.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected string WriteFieldContinuousPickup(string name, string fieldName, ContinuousPickup? value)
+        {
+            if (value.HasValue)
+            {
+                switch (value.Value)
+                {
+                    case ContinuousPickup.ContinuousStoppingPickup:
+                        return "0";
+                    case ContinuousPickup.None:
+                        return "1";
+                    case ContinuousPickup.PhoneForPickup:
+                        return "2";
+                    case ContinuousPickup.DriverForPickup:
+                        return "3";
+                }
+            }
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Writes the continuous_drop_off type.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="fieldName"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        protected string WriteFieldContinuousDropOff(string name, string fieldName, ContinuousDropOff? value)
+        {
+            if (value.HasValue)
+            {
+                switch (value.Value)
+                {
+                    case ContinuousDropOff.ContinuousStoppingDropOff:
+                        return "0";
+                    case ContinuousDropOff.None:
+                        return "1";
+                    case ContinuousDropOff.PhoneForDropOff:
+                        return "2";
+                    case ContinuousDropOff.DriverForDropOff:
                         return "3";
                 }
             }

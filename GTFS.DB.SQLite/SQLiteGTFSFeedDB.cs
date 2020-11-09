@@ -312,7 +312,7 @@ namespace GTFS.DB.SQLite
                 //    throw new Exception("Failed to create column 'vehicle_capacity' in table 'route'");
                 //}
             }
-            // 5. add track_version column to gpx_filenames
+            //  5. add track_version column to gpx_filenames
             if (!ColumnExists("gpx_filenames", "track_version"))
             {
                 this.ExecuteNonQuery("ALTER TABLE [gpx_filenames] ADD [track_version] INTEGER;");
@@ -326,6 +326,26 @@ namespace GTFS.DB.SQLite
             if (!ColumnExists("stop", "platform_code"))
             {
                 this.ExecuteNonQuery("ALTER TABLE [stop] ADD [platform_code] TEXT;");
+            }
+            //  7.1 add continuous_pickup column to route
+            if (!ColumnExists("route", "continuous_pickup"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE [route] ADD [continuous_pickup] INTEGER;");
+            }
+            //  7.2 add continuous_drop_off column to route
+            if (!ColumnExists("route", "continuous_drop_off"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE [route] ADD [continuous_drop_off] INTEGER;");
+            }
+            //  7.3 add continuous_pickup column to route
+            if (!ColumnExists("stop_time", "continuous_pickup"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE [stop_time] ADD [continuous_pickup] INTEGER;");
+            }
+            //  7.4 add continuous_drop_off column to route
+            if (!ColumnExists("stop_time", "continuous_drop_off"))
+            {
+                this.ExecuteNonQuery("ALTER TABLE [stop_time] ADD [continuous_drop_off] INTEGER;");
             }
         }
 
@@ -440,8 +460,8 @@ namespace GTFS.DB.SQLite
         /// </summary>
         public void SortRoutes()
         {
-            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [route_sorted] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [agency_id] TEXT, [route_short_name] TEXT, [route_long_name] TEXT, [route_desc] TEXT, [route_type] INTEGER NOT NULL, [route_url] TEXT, [route_color] INTEGER, [route_text_color] INTEGER, [vehicle_capacity] INTEGER );");
-            this.ExecuteNonQuery("INSERT INTO route_sorted (FEED_ID, id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity) SELECT FEED_ID, id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity FROM route ORDER BY id ASC;");
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [route_sorted] ( [FEED_ID] INTEGER NOT NULL, [id] TEXT NOT NULL, [agency_id] TEXT, [route_short_name] TEXT, [route_long_name] TEXT, [route_desc] TEXT, [route_type] INTEGER NOT NULL, [route_url] TEXT, [route_color] INTEGER, [route_text_color] INTEGER, [vehicle_capacity] INTEGER, [continuous_pickup] INTEGER, [continuous_drop_off] INTEGER );");
+            this.ExecuteNonQuery("INSERT INTO route_sorted (FEED_ID, id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity, continuous_pickup, continuous_drop_off) SELECT FEED_ID, id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity, continuous_pickup, continuous_drop_off FROM route ORDER BY id ASC;");
             this.ExecuteNonQuery("DROP TABLE route");
             this.ExecuteNonQuery("ALTER TABLE route_sorted RENAME TO route");
         }
@@ -473,8 +493,8 @@ namespace GTFS.DB.SQLite
         /// </summary>
         public void SortStopTimes()
         {
-            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [stop_time_sorted] ( [FEED_ID] INTEGER NOT NULL, [trip_id] TEXT NOT NULL, [arrival_time] INTEGER, [departure_time] INTEGER, [stop_id] TEXT, [stop_sequence] INTEGER, [stop_headsign] TEXT, [pickup_type] INTEGER, [drop_off_type] INTEGER, [shape_dist_traveled] TEXT, [passenger_boarding] INTEGER, [passenger_alighting] INTEGER, [through_passengers] INTEGER, [total_passengers] INTEGER );");
-            this.ExecuteNonQuery("INSERT INTO stop_time_sorted (FEED_ID, trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, passenger_boarding, passenger_alighting, through_passengers, total_passengers) SELECT FEED_ID, trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, passenger_boarding, passenger_alighting, through_passengers, total_passengers FROM stop_time ORDER BY trip_id ASC, stop_sequence ASC;");
+            this.ExecuteNonQuery("CREATE TABLE IF NOT EXISTS [stop_time_sorted] ( [FEED_ID] INTEGER NOT NULL, [trip_id] TEXT NOT NULL, [arrival_time] INTEGER, [departure_time] INTEGER, [stop_id] TEXT, [stop_sequence] INTEGER, [stop_headsign] TEXT, [pickup_type] INTEGER, [drop_off_type] INTEGER, [shape_dist_traveled] TEXT, [passenger_boarding] INTEGER, [passenger_alighting] INTEGER, [through_passengers] INTEGER, [total_passengers] INTEGER, [continuous_pickup] INTEGER, [continuous_drop_off] INTEGER );");
+            this.ExecuteNonQuery("INSERT INTO stop_time_sorted (FEED_ID, trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, passenger_boarding, passenger_alighting, through_passengers, total_passengers, continuous_pickup, continuous_drop_off) SELECT FEED_ID, trip_id, arrival_time, departure_time, stop_id, stop_sequence, stop_headsign, pickup_type, drop_off_type, shape_dist_traveled, passenger_boarding, passenger_alighting, through_passengers, total_passengers, continuous_pickup, continuous_drop_off FROM stop_time ORDER BY trip_id ASC, stop_sequence ASC;");
             this.ExecuteNonQuery("DROP TABLE stop_time");
             this.ExecuteNonQuery("ALTER TABLE stop_time_sorted RENAME TO stop_time");
         }
