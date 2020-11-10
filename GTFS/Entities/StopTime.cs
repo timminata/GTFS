@@ -86,6 +86,22 @@ namespace GTFS.Entities
         public DropOffType? DropOffType { get; set; }
 
         /// <summary>
+        /// Indicates whether a rider can board the transit vehicle at any point along the vehicle’s travel path. The path is described by shapes.txt, from this stop_time to the next stop_time in the trip’s stop_sequence.
+        /// 
+        /// The continuous pickup behavior indicated in stop_times.txt overrides any behavior defined in routes.txt.
+        /// </summary>
+        [FieldName("continuous_pickup")]
+        public ContinuousPickup? ContinuousPickup { get; set; }
+
+        /// <summary>
+        /// Indicates whether a rider can alight from the transit vehicle at any point along the vehicle’s travel path as described by shapes.txt, from this stop_time to the next stop_time in the trip’s stop_sequence.
+        /// 
+        /// The continuous drop-off behavior indicated in stop_times.txt overrides any behavior defined in routes.txt.
+        /// </summary>
+        [FieldName("continuous_drop_off")]
+        public ContinuousDropOff? ContinuousDropOff { get; set; }
+
+        /// <summary>
         /// Gets or sets a distance from the first shape point.
         /// </summary>
         [FieldName("shape_dist_traveled")]
@@ -158,6 +174,8 @@ namespace GTFS.Entities
                 hash = hash * 59 + this.StopId.GetHashCodeEmptyWhenNull();
                 hash = hash * 59 + this.StopSequence.GetHashCode();
                 hash = hash * 59 + this.TripId.GetHashCodeEmptyWhenNull();
+                hash = hash * 59 + this.ContinuousPickup.GetHashCode();
+                hash = hash * 59 + this.ContinuousDropOff.GetHashCode();
                 hash = hash * 59 + this.PassengerBoarding != null ? this.PassengerBoarding.GetHashCode() : 0;
                 hash = hash * 59 + this.PassengerAlighting != null ? this.PassengerAlighting.GetHashCode() : 0;
                 hash = hash * 59 + this.ThroughPassengers != null ? this.ThroughPassengers.GetHashCode() : 0;
@@ -183,6 +201,8 @@ namespace GTFS.Entities
                     (this.StopId ?? string.Empty) == (other.StopId ?? string.Empty) &&
                     this.StopSequence == other.StopSequence &&
                     (this.TripId ?? string.Empty) == (other.TripId ?? string.Empty) &&
+                    this.ContinuousPickup == other.ContinuousPickup &&
+                    this.ContinuousDropOff == other.ContinuousDropOff &&
                     (this.PassengerBoarding ?? 0) == (other.PassengerBoarding ?? 0) &&
                     (this.PassengerAlighting ?? 0) == (other.PassengerAlighting ?? 0) &&
                     (this.ThroughPassengers ?? 0) == (other.ThroughPassengers ?? 0) &&
@@ -208,6 +228,8 @@ namespace GTFS.Entities
                 StopSequence = other.StopSequence,
                 Tag = other.Tag,
                 TripId = other.TripId,
+                ContinuousPickup = other.ContinuousPickup,
+                ContinuousDropOff = other.ContinuousDropOff,
                 PassengerBoarding = other.PassengerBoarding,
                 PassengerAlighting = other.PassengerAlighting,
                 ThroughPassengers = other.ThroughPassengers,

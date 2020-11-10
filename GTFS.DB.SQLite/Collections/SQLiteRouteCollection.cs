@@ -63,7 +63,7 @@ namespace GTFS.DB.SQLite.Collections
         /// <param name="entity"></param>
         public void Add(Route entity)
         {
-            string sql = "INSERT INTO route VALUES (:feed_id, :id, :agency_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color, :vehicle_capacity);";
+            string sql = "INSERT INTO route VALUES (:feed_id, :id, :agency_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color, :vehicle_capacity, :continuous_pickup, :continuous_drop_off);";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -78,6 +78,8 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters.Add(new SQLiteParameter(@"route_color", DbType.Int64));
                 command.Parameters.Add(new SQLiteParameter(@"route_text_color", DbType.Int64));
                 command.Parameters.Add(new SQLiteParameter(@"vehicle_capacity", DbType.Int64));
+                command.Parameters.Add(new SQLiteParameter(@"continuous_pickup", DbType.Int64));
+                command.Parameters.Add(new SQLiteParameter(@"continuous_drop_off", DbType.Int64));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = entity.Id;
@@ -90,6 +92,8 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[8].Value = entity.Color;
                 command.Parameters[9].Value = entity.TextColor;
                 command.Parameters[10].Value = entity.VehicleCapacity;
+                command.Parameters[11].Value = (int)entity.ContinuousPickup;
+                command.Parameters[12].Value = (int)entity.ContinuousDropOff;
 
                 command.ExecuteNonQuery();
             }
@@ -103,7 +107,7 @@ namespace GTFS.DB.SQLite.Collections
                 {
                     foreach (var entity in entities)
                     {
-                        string sql = "INSERT INTO route VALUES (:feed_id, :id, :agency_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color, :vehicle_capacity);";
+                        string sql = "INSERT INTO route VALUES (:feed_id, :id, :agency_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color, :vehicle_capacity, :continuous_pickup, :continuous_drop_off);";
                         command.CommandText = sql;
                         command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
                         command.Parameters.Add(new SQLiteParameter(@"id", DbType.String));
@@ -116,6 +120,8 @@ namespace GTFS.DB.SQLite.Collections
                         command.Parameters.Add(new SQLiteParameter(@"route_color", DbType.Int64));
                         command.Parameters.Add(new SQLiteParameter(@"route_text_color", DbType.Int64));
                         command.Parameters.Add(new SQLiteParameter(@"vehicle_capacity", DbType.Int64));
+                        command.Parameters.Add(new SQLiteParameter(@"continuous_pickup", DbType.Int64));
+                        command.Parameters.Add(new SQLiteParameter(@"continuous_drop_off", DbType.Int64));
 
                         command.Parameters[0].Value = _id;
                         command.Parameters[1].Value = entity.Id;
@@ -128,6 +134,8 @@ namespace GTFS.DB.SQLite.Collections
                         command.Parameters[8].Value = entity.Color;
                         command.Parameters[9].Value = entity.TextColor;
                         command.Parameters[10].Value = entity.VehicleCapacity;
+                        command.Parameters[11].Value = (int)entity.ContinuousPickup;
+                        command.Parameters[12].Value = (int)entity.ContinuousDropOff;
 
                         command.ExecuteNonQuery();
                     }
@@ -206,7 +214,7 @@ namespace GTFS.DB.SQLite.Collections
         /// <returns></returns>
         public IEnumerable<Route> Get()
         {
-            string sql = "SELECT id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity FROM route WHERE FEED_ID = :id";
+            string sql = "SELECT id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity, continuous_pickup, continuous_drop_off FROM route WHERE FEED_ID = :id";
             var parameters = new List<SQLiteParameter>();
             parameters.Add(new SQLiteParameter(@"id", DbType.Int64));
             parameters[0].Value = _id;
@@ -224,7 +232,9 @@ namespace GTFS.DB.SQLite.Collections
                     Url = x.IsDBNull(6) ? null : x.GetString(6),
                     Color = x.IsDBNull(7) ? null : (int?)x.GetInt64(7),
                     TextColor = x.IsDBNull(8) ? null : (int?)x.GetInt64(8),
-                    VehicleCapacity = x.IsDBNull(9) ? null : (int?)x.GetInt64(9)
+                    VehicleCapacity = x.IsDBNull(9) ? null : (int?)x.GetInt64(9),
+                    ContinuousPickup = x.IsDBNull(10) ? null : (ContinuousPickup?)x.GetInt64(10),
+                    ContinuousDropOff = x.IsDBNull(11) ? null : (ContinuousDropOff?)x.GetInt64(11)
                 };
             });
         }
@@ -286,7 +296,7 @@ namespace GTFS.DB.SQLite.Collections
 
         public bool Update(string entityId, Route entity)
         {
-            string sql = "UPDATE route SET FEED_ID=:feed_id, id=:id, agency_id=:agency_id, route_short_name=:route_short_name, route_long_name=:route_long_name, route_desc=:route_desc, route_type=:route_type, route_url=:route_url, route_color=:route_color, route_text_color=:route_text_color, vehicle_capacity=:vehicle_capacity WHERE id=:entityId;";
+            string sql = "UPDATE route SET FEED_ID=:feed_id, id=:id, agency_id=:agency_id, route_short_name=:route_short_name, route_long_name=:route_long_name, route_desc=:route_desc, route_type=:route_type, route_url=:route_url, route_color=:route_color, route_text_color=:route_text_color, vehicle_capacity=:vehicle_capacity, continuous_pickup=:continuous_pickup, continuous_drop_off=:continuous_drop_off WHERE id=:entityId;";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -301,6 +311,8 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters.Add(new SQLiteParameter(@"route_color", DbType.Int64));
                 command.Parameters.Add(new SQLiteParameter(@"route_text_color", DbType.Int64));
                 command.Parameters.Add(new SQLiteParameter(@"vehicle_capacity", DbType.Int64));
+                command.Parameters.Add(new SQLiteParameter(@"continuous_pickup", DbType.Int64));
+                command.Parameters.Add(new SQLiteParameter(@"continuous_drop_off", DbType.Int64));
                 command.Parameters.Add(new SQLiteParameter(@"entityId", DbType.String));
 
                 command.Parameters[0].Value = _id;
@@ -314,7 +326,9 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[8].Value = entity.Color;
                 command.Parameters[9].Value = entity.TextColor;
                 command.Parameters[10].Value = entity.VehicleCapacity;
-                command.Parameters[11].Value = entityId;
+                command.Parameters[11].Value = (int)entity.ContinuousPickup;
+                command.Parameters[12].Value = (int)entity.ContinuousDropOff;
+                command.Parameters[13].Value = entityId;
 
                 return command.ExecuteNonQuery() > 0;
             }

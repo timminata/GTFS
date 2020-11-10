@@ -64,7 +64,7 @@ namespace GTFS.DB.PostgreSQL.Collections
         /// <param name="entity"></param>
         public void Add(Route entity)
         {
-            string sql = "INSERT INTO route VALUES (:feed_id, :id, :agency_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color, :vehicle_capacity);";
+            string sql = "INSERT INTO route VALUES (:feed_id, :id, :agency_id, :route_short_name, :route_long_name, :route_desc, :route_type, :route_url, :route_color, :route_text_color, :vehicle_capacity, :continuous_pickup, :continuous_drop_off);";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -79,6 +79,8 @@ namespace GTFS.DB.PostgreSQL.Collections
                 command.Parameters.Add(new NpgsqlParameter(@"route_color", DbType.Int64));
                 command.Parameters.Add(new NpgsqlParameter(@"route_text_color", DbType.Int64));
                 command.Parameters.Add(new NpgsqlParameter(@"vehicle_capacity", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"continuous_pickup", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"continuous_drop_off", DbType.Int64));
 
                 command.Parameters[0].Value = _id;
                 command.Parameters[1].Value = entity.Id;
@@ -91,6 +93,8 @@ namespace GTFS.DB.PostgreSQL.Collections
                 command.Parameters[8].Value = entity.Color;
                 command.Parameters[9].Value = entity.TextColor;
                 command.Parameters[10].Value = entity.VehicleCapacity;
+                command.Parameters[11].Value = entity.ContinuousPickup.HasValue ? (int?)entity.ContinuousPickup.Value : null;
+                command.Parameters[12].Value = entity.ContinuousDropOff.HasValue ? (int?)entity.ContinuousDropOff.Value : null;
 
                 command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 command.ExecuteNonQuery();
@@ -99,7 +103,7 @@ namespace GTFS.DB.PostgreSQL.Collections
 
         public void AddRange(IUniqueEntityCollection<Route> entities)
         {
-            using (var writer = _connection.BeginBinaryImport("COPY route (feed_id, id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity) FROM STDIN (FORMAT BINARY)"))
+            using (var writer = _connection.BeginBinaryImport("COPY route (feed_id, id, agency_id, route_short_name, route_long_name, route_desc, route_type, route_url, route_color, route_text_color, vehicle_capacity, continuous_pickup, continuous_drop_off) FROM STDIN (FORMAT BINARY)"))
             {
                 foreach (var route in entities)
                 {
@@ -115,6 +119,8 @@ namespace GTFS.DB.PostgreSQL.Collections
                     writer.Write(route.Color, NpgsqlTypes.NpgsqlDbType.Integer);
                     writer.Write(route.TextColor, NpgsqlTypes.NpgsqlDbType.Integer);
                     writer.Write(route.VehicleCapacity, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(route.ContinuousPickup, NpgsqlTypes.NpgsqlDbType.Integer);
+                    writer.Write(route.ContinuousDropOff, NpgsqlTypes.NpgsqlDbType.Integer);
                 }
             }
         }
@@ -211,7 +217,9 @@ namespace GTFS.DB.PostgreSQL.Collections
                         Url = reader.ReadStringSafe(),
                         Color = reader.ReadIntSafe(),
                         TextColor = reader.ReadIntSafe(),
-                        VehicleCapacity = reader.ReadIntSafe()
+                        VehicleCapacity = reader.ReadIntSafe(),
+                        ContinuousPickup = (ContinuousPickup?)reader.ReadIntSafe(),
+                        ContinuousDropOff = (ContinuousDropOff?)reader.ReadIntSafe(),
                     });
                 }
             }
@@ -288,7 +296,7 @@ namespace GTFS.DB.PostgreSQL.Collections
 
         public bool Update(string entityId, Route entity)
         {
-            string sql = "UPDATE route SET FEED_ID=:feed_id, id=:id, agency_id=:agency_id, route_short_name=:route_short_name, route_long_name=:route_long_name, route_desc=:route_desc, route_type=:route_type, route_url=:route_url, route_color=:route_color, route_text_color=:route_text_color, vehicle_capacity=:vehicle_capacity WHERE id=:entityId;";
+            string sql = "UPDATE route SET FEED_ID=:feed_id, id=:id, agency_id=:agency_id, route_short_name=:route_short_name, route_long_name=:route_long_name, route_desc=:route_desc, route_type=:route_type, route_url=:route_url, route_color=:route_color, route_text_color=:route_text_color, vehicle_capacity=:vehicle_capacity, continuous_pickup=:continuous_pickup, continuous_drop_off=:continuous_drop_off WHERE id=:entityId;";
             using (var command = _connection.CreateCommand())
             {
                 command.CommandText = sql;
@@ -303,6 +311,8 @@ namespace GTFS.DB.PostgreSQL.Collections
                 command.Parameters.Add(new NpgsqlParameter(@"route_color", DbType.Int64));
                 command.Parameters.Add(new NpgsqlParameter(@"route_text_color", DbType.Int64));
                 command.Parameters.Add(new NpgsqlParameter(@"vehicle_capacity", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"continuous_pickup", DbType.Int64));
+                command.Parameters.Add(new NpgsqlParameter(@"continuous_drop_off", DbType.Int64));
                 command.Parameters.Add(new NpgsqlParameter(@"entityId", DbType.String));
 
                 command.Parameters[0].Value = _id;
@@ -316,7 +326,9 @@ namespace GTFS.DB.PostgreSQL.Collections
                 command.Parameters[8].Value = entity.Color;
                 command.Parameters[9].Value = entity.TextColor;
                 command.Parameters[10].Value = entity.VehicleCapacity;
-                command.Parameters[11].Value = entityId;
+                command.Parameters[11].Value = entity.ContinuousPickup.HasValue ? (int?)entity.ContinuousPickup.Value : null;
+                command.Parameters[12].Value = entity.ContinuousDropOff.HasValue ? (int?)entity.ContinuousDropOff.Value : null;
+                command.Parameters[13].Value = entityId;
 
                 command.Parameters.Where(x => x.Value == null).ToList().ForEach(x => x.Value = DBNull.Value);
                 return command.ExecuteNonQuery() > 0;

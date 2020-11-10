@@ -44,6 +44,8 @@
     <Compile Include="Attributes\RequiredAttribute.cs" />
     <Compile Include="DB\IGTFSFeedDB.cs" />
     <Compile Include="DB\Memory\GTFSFeedDB.cs" />
+    <Compile Include="Entities\Enumerations\ContinuousDropOff.cs" />
+    <Compile Include="Entities\Enumerations\ContinuousPickup.cs" />
     <Compile Include="Entities\Enumerations\IsBidirectional.cs" />
     <Compile Include="Entities\Enumerations\PathwayMode.cs" />
     <Compile Include="Entities\Pathway.cs" />
