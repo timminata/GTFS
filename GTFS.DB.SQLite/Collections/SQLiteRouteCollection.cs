@@ -92,8 +92,8 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[8].Value = entity.Color;
                 command.Parameters[9].Value = entity.TextColor;
                 command.Parameters[10].Value = entity.VehicleCapacity;
-                command.Parameters[11].Value = (int)entity.ContinuousPickup;
-                command.Parameters[12].Value = (int)entity.ContinuousDropOff;
+                command.Parameters[11].Value = entity.ContinuousPickup.HasValue ? (int?)entity.ContinuousPickup.Value : null;
+                command.Parameters[12].Value = entity.ContinuousDropOff.HasValue ? (int?)entity.ContinuousDropOff.Value : null;
 
                 command.ExecuteNonQuery();
             }
@@ -326,8 +326,8 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[8].Value = entity.Color;
                 command.Parameters[9].Value = entity.TextColor;
                 command.Parameters[10].Value = entity.VehicleCapacity;
-                command.Parameters[11].Value = (int)entity.ContinuousPickup;
-                command.Parameters[12].Value = (int)entity.ContinuousDropOff;
+                command.Parameters[11].Value = entity.ContinuousPickup.HasValue ? (int?)entity.ContinuousPickup.Value : null;
+                command.Parameters[12].Value = entity.ContinuousDropOff.HasValue ? (int?)entity.ContinuousDropOff.Value : null;
                 command.Parameters[13].Value = entityId;
 
                 return command.ExecuteNonQuery() > 0;
