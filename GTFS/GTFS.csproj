@@ -67,6 +67,7 @@
     <Compile Include="Entities\Enumerations\PaymentMethodType.cs" />
     <Compile Include="Entities\Enumerations\PickupType.cs" />
     <Compile Include="Entities\Enumerations\RouteType.cs" />
+    <Compile Include="Entities\Enumerations\RouteTypeExtended.cs" />
     <Compile Include="Entities\Enumerations\TransferType.cs" />
     <Compile Include="Entities\Enumerations\WheelchairBoardingType.cs" />
     <Compile Include="Entities\Extensions.cs" />
