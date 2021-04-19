@@ -85,6 +85,16 @@ namespace GTFS.Entities.Collections
         }
 
         /// <summary>
+        /// Returns the entities for the given id's.
+        /// </summary>
+        /// <param name="entityIds"></param>
+        /// <returns></returns>
+        public IEnumerable<T> Get(List<string> entityIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
         /// Removes the entity with the given id.
         /// </summary>
         /// <param name="entityId"></param>
@@ -101,6 +111,19 @@ namespace GTFS.Entities.Collections
                 }
             }
             return false;
+        }
+
+        /// <summary>
+        /// Removes a range of entities by their IDs
+        /// </summary>
+        /// <param name="entityIds"></param>
+        /// <returns></returns>
+        public void RemoveRange(IEnumerable<string> entityIds)
+        {
+            foreach (var id in entityIds) // probably not the smartest implementation, but it should work
+            {
+                Remove(id);
+            };
         }
 
         /// <summary>
@@ -127,7 +150,7 @@ namespace GTFS.Entities.Collections
         /// <returns></returns>
         public void AddRange(IEntityCollection<T> entities)
         {
-            throw new NotImplementedException();
+            _entities.AddRange(entities);
         }
 
         /// <summary>
@@ -135,6 +158,15 @@ namespace GTFS.Entities.Collections
         /// </summary>
         /// <returns></returns>
         public void RemoveAll()
+        {
+            _entities = new List<T>();
+        }
+
+        /// <summary>
+        /// Get all entity ids
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> GetIds()
         {
             throw new NotImplementedException();
         }

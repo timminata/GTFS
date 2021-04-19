@@ -67,11 +67,37 @@ namespace GTFS.Entities
         public uint? Transfers { get; set; }
 
         /// <summary>
+        /// Required for feeds with multiple agencies defined in the agency.txt file.
+        /// Each fare attribute must specify an agency_id value to indicate which agency the fare applies to.
+        /// </summary>
+        [FieldName("agency_id")]
+        public string AgencyId { get; set; }
+
+        /// <summary>
         /// Gets or sets the length of time in seconds before a transfer expires.
         /// </summary>
         [FieldName("transfer_duration")]
         public string TransferDuration { get; set; }
 
+        /// <summary>
+        /// Creates a copy of the given fare attribute
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public static FareAttribute From(FareAttribute other)
+        {
+            return new FareAttribute()
+            {
+                AgencyId = other.AgencyId,
+                CurrencyType = other.CurrencyType,
+                FareId = other.FareId,
+                PaymentMethod = other.PaymentMethod,
+                Price = other.Price,
+                Tag = other.Tag,
+                TransferDuration = other.TransferDuration,
+                Transfers = other.Transfers
+            };
+        }
 
         /// <summary>
         /// Serves as a hash function.
@@ -82,12 +108,13 @@ namespace GTFS.Entities
             unchecked
             {
                 int hash = 23;
+                hash = hash * 29 + this.FareId.GetHashCode();
                 hash = hash * 29 + (this.CurrencyType ?? string.Empty).GetHashCode();
-                hash = hash * 29 + (this.FareId ?? string.Empty).GetHashCode();
                 hash = hash * 29 + this.PaymentMethod.GetHashCode();
                 hash = hash * 29 + (this.Price ?? string.Empty).GetHashCode();
                 hash = hash * 29 + (this.TransferDuration ?? string.Empty).GetHashCode();
                 hash = hash * 29 + this.Transfers.GetHashCode();
+                hash = hash * 29 + (this.AgencyId ?? string.Empty).GetHashCode();
                 return hash;
             }
         }
@@ -100,12 +127,13 @@ namespace GTFS.Entities
             var other = (obj as FareAttribute);
             if (other != null)
             {
-                return (this.CurrencyType ?? string.Empty) == (other.CurrencyType ?? string.Empty) &&
-                    (this.FareId ?? string.Empty) == (other.CurrencyType ?? string.Empty) &&
+                return this.FareId == other.FareId &&
+                    (this.CurrencyType ?? string.Empty) == (other.CurrencyType ?? string.Empty) &&
                     this.PaymentMethod == other.PaymentMethod &&
                     (this.Price ?? string.Empty) == (other.Price ?? string.Empty) &&
                     (this.TransferDuration ?? string.Empty) == (other.TransferDuration ?? string.Empty) &&
-                    this.Transfers == other.Transfers;
+                    this.Transfers == other.Transfers &&
+                    (this.AgencyId ?? string.Empty) == (other.AgencyId ?? string.Empty);
             }
             return false;
         }

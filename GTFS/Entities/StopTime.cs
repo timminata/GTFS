@@ -44,14 +44,14 @@ namespace GTFS.Entities
         /// </summary>
         [Required]
         [FieldName("arrival_time")]
-        public TimeOfDay ArrivalTime { get; set; }
+        public TimeOfDay? ArrivalTime { get; set; }
 
         /// <summary>
         /// Gets or sets the departure time from a specific stop for a specific trip on a route. The time is measured from "noon minus 12h" (effectively midnight, except for days on which daylight savings time changes occur) at the beginning of the service date. For times occurring after midnight on the service date, enter the time as a value greater than 24:00:00 in HH:MM:SS local time for the day on which the trip schedule begins. If you don't have separate times for arrival and departure at a stop, enter the same value for arrival_time and departure_time.
         /// </summary>
         [Required]
         [FieldName("departure_time")]
-        public TimeOfDay DepartureTime { get; set; }
+        public TimeOfDay? DepartureTime { get; set; }
 
         /// <summary>
         /// Gets or sets a stop. Multiple routes may use the same stop. If location_type is used in stops.txt, all stops referenced in stop_times.txt must have location_type of 0.
@@ -86,13 +86,53 @@ namespace GTFS.Entities
         public DropOffType? DropOffType { get; set; }
 
         /// <summary>
+        /// Indicates whether a rider can board the transit vehicle at any point along the vehicle’s travel path. The path is described by shapes.txt, from this stop_time to the next stop_time in the trip’s stop_sequence.
+        /// 
+        /// The continuous pickup behavior indicated in stop_times.txt overrides any behavior defined in routes.txt.
+        /// </summary>
+        [FieldName("continuous_pickup")]
+        public ContinuousPickup? ContinuousPickup { get; set; }
+
+        /// <summary>
+        /// Indicates whether a rider can alight from the transit vehicle at any point along the vehicle’s travel path as described by shapes.txt, from this stop_time to the next stop_time in the trip’s stop_sequence.
+        /// 
+        /// The continuous drop-off behavior indicated in stop_times.txt overrides any behavior defined in routes.txt.
+        /// </summary>
+        [FieldName("continuous_drop_off")]
+        public ContinuousDropOff? ContinuousDropOff { get; set; }
+
+        /// <summary>
         /// Gets or sets a distance from the first shape point.
         /// </summary>
         [FieldName("shape_dist_traveled")]
         public string ShapeDistTravelled { get; set; }
 
         /// <summary>
-        /// Returns a description of this trip.
+        /// Gets or sets number of passengers that boarded at this stop during this trip.
+        /// </summary>
+        [FieldName("passenger_boarding")]
+        public int? PassengerBoarding { get; set; }
+
+        /// <summary>
+        /// Gets or sets number of passengers that alighted at this stop during this trip.
+        /// </summary>
+        [FieldName("passenger_alighting")]
+        public int? PassengerAlighting { get; set; }
+
+        /// <summary>
+        /// Gets or sets number of through passengers in the trip up until this stop.
+        /// </summary>
+        [FieldName("through_passengers")]
+        public int? ThroughPassengers { get; set; }
+
+        /// <summary>
+        /// Gets or sets number of total passengers in the trip up until this stop.
+        /// </summary>
+        [FieldName("total_passengers")]
+        public int? TotalPassengers { get; set; }
+
+        /// <summary>
+        /// Returns a description of this StopTime's times.
         /// </summary>
         /// <returns></returns>
         public override string ToString()
@@ -129,11 +169,17 @@ namespace GTFS.Entities
                 hash = hash * 59 + this.DepartureTime.GetHashCode();
                 hash = hash * 59 + this.DropOffType.GetHashCode();
                 hash = hash * 59 + this.PickupType.GetHashCode();
-                hash = hash * 59 + this.ShapeDistTravelled.GetHashCode();
-                hash = hash * 59 + this.StopHeadsign.GetHashCode();
+                hash = hash * 59 + this.ShapeDistTravelled.GetHashCodeEmptyWhenNull();
+                hash = hash * 59 + this.StopHeadsign.GetHashCodeEmptyWhenNull();
                 hash = hash * 59 + this.StopId.GetHashCodeEmptyWhenNull();
                 hash = hash * 59 + this.StopSequence.GetHashCode();
                 hash = hash * 59 + this.TripId.GetHashCodeEmptyWhenNull();
+                hash = hash * 59 + this.ContinuousPickup.GetHashCode();
+                hash = hash * 59 + this.ContinuousDropOff.GetHashCode();
+                hash = hash * 59 + this.PassengerBoarding != null ? this.PassengerBoarding.GetHashCode() : 0;
+                hash = hash * 59 + this.PassengerAlighting != null ? this.PassengerAlighting.GetHashCode() : 0;
+                hash = hash * 59 + this.ThroughPassengers != null ? this.ThroughPassengers.GetHashCode() : 0;
+                hash = hash * 59 + this.TotalPassengers != null ? this.TotalPassengers.GetHashCode() : 0;
                 return hash;
             }
         }
@@ -148,13 +194,19 @@ namespace GTFS.Entities
             {
                 return this.ArrivalTime.Equals(other.ArrivalTime) &&
                     this.DepartureTime.Equals(other.DepartureTime) &&
-                    this.DropOffType== other.DropOffType &&
+                    this.DropOffType == other.DropOffType &&
                     this.PickupType == other.PickupType &&
                     (this.ShapeDistTravelled ?? string.Empty) == (other.ShapeDistTravelled ?? string.Empty) &&
                     (this.StopHeadsign ?? string.Empty) == (other.StopHeadsign ?? string.Empty) &&
                     (this.StopId ?? string.Empty) == (other.StopId ?? string.Empty) &&
                     this.StopSequence == other.StopSequence &&
-                    (this.TripId ?? string.Empty) == (other.TripId ?? string.Empty);
+                    (this.TripId ?? string.Empty) == (other.TripId ?? string.Empty) &&
+                    this.ContinuousPickup == other.ContinuousPickup &&
+                    this.ContinuousDropOff == other.ContinuousDropOff &&
+                    (this.PassengerBoarding ?? 0) == (other.PassengerBoarding ?? 0) &&
+                    (this.PassengerAlighting ?? 0) == (other.PassengerAlighting ?? 0) &&
+                    (this.ThroughPassengers ?? 0) == (other.ThroughPassengers ?? 0) &&
+                    (this.TotalPassengers ?? 0) == (other.TotalPassengers ?? 0);
             }
             return false;
         }
@@ -175,7 +227,13 @@ namespace GTFS.Entities
                 StopId = other.StopId,
                 StopSequence = other.StopSequence,
                 Tag = other.Tag,
-                TripId = other.TripId
+                TripId = other.TripId,
+                ContinuousPickup = other.ContinuousPickup,
+                ContinuousDropOff = other.ContinuousDropOff,
+                PassengerBoarding = other.PassengerBoarding,
+                PassengerAlighting = other.PassengerAlighting,
+                ThroughPassengers = other.ThroughPassengers,
+                TotalPassengers = other.TotalPassengers
             };
         }
     }

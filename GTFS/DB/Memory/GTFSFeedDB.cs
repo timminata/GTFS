@@ -21,7 +21,10 @@
 // THE SOFTWARE.
 
 using GTFS.Entities;
+using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
 using System.Linq;
 
 namespace GTFS.DB.Memory
@@ -35,6 +38,10 @@ namespace GTFS.DB.Memory
         /// Holds all the feeds that have been added.
         /// </summary>
         private List<IGTFSFeed> _feeds = new List<IGTFSFeed>();
+
+        public DbConnection Connection => throw new NotImplementedException();
+
+        public string ConnectionString => throw new NotImplementedException();
 
         /// <summary>
         /// Adds a new empty feed to this db.
@@ -64,7 +71,7 @@ namespace GTFS.DB.Memory
         /// <returns></returns>
         public bool RemoveFeed(int id)
         {
-            if(id < _feeds.Count && _feeds[id] != null)
+            if (id < _feeds.Count && _feeds[id] != null)
             {
                 _feeds[id] = null;
                 return true;
@@ -90,5 +97,77 @@ namespace GTFS.DB.Memory
         {
             return _feeds[id];
         }
+
+        public bool TableExists(string tableName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public bool ColumnExists(string tableName, string columnName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetFullDataSource()
+        {
+            throw new NotSupportedException();
+        }
+
+        public void SortAllTables()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortRoutes()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortTrips()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortStops()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortStopTimes()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortFrequencies()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortCalendars()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortCalendarDates()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortShapes()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SortPolygons()
+        {
+            throw new NotImplementedException();
+        }
+
+        public DbParameter CreateParameter(string name, DbType type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public object Tag { get; set; }
     }
 }

@@ -32,7 +32,7 @@ namespace GTFS.Entities.Collections
     public class StopTimeListCollection : IStopTimeCollection
     {
         /// <summary>
-        /// Holds the list containing all stops.
+        /// Holds the list containing all stop_times.
         /// </summary>
         private List<StopTime> _entities;
 
@@ -73,6 +73,18 @@ namespace GTFS.Entities.Collections
                 {
                     return e.TripId == tripId;
                 });
+        }
+
+        /// <summary>
+        /// Gets all stop times for the given trips.
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<StopTime> GetForTrips(IEnumerable<string> tripIds)
+        {
+            return _entities.Where(e =>
+            {
+                return tripIds.Contains(e.TripId);
+            });
         }
 
         /// <summary>
@@ -135,7 +147,7 @@ namespace GTFS.Entities.Collections
         /// <returns></returns>
         public void AddRange(IEnumerable<StopTime> entities)
         {
-            throw new NotImplementedException();
+            _entities.AddRange(entities);
         }
 
         /// <summary>
@@ -153,7 +165,10 @@ namespace GTFS.Entities.Collections
         /// <returns></returns>
         public void RemoveForTrips(IEnumerable<string> tripIds)
         {
-            throw new NotImplementedException();
+            _entities.RemoveAll(x =>
+            {
+                return tripIds.Contains(x.TripId);
+            });
         }
 
         /// <summary>
@@ -175,12 +190,12 @@ namespace GTFS.Entities.Collections
         }
 
         /// <summary>
-        /// This doesn't do anything - placeholder
+        /// Replaces the internal list of stop_times with a new, empty list.
         /// </summary>
         /// <returns></returns>
         public void RemoveAll()
         {
-            throw new NotImplementedException();
+            _entities = new List<StopTime>();
         }
     }
 }

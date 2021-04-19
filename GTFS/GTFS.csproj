@@ -36,9 +36,6 @@
     </DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\SharedAssemblyVersion.cs">
       <Link>Properties\SharedAssemblyVersion.cs</Link>
     </Compile>
@@ -47,6 +44,12 @@
     <Compile Include="Attributes\RequiredAttribute.cs" />
     <Compile Include="DB\IGTFSFeedDB.cs" />
     <Compile Include="DB\Memory\GTFSFeedDB.cs" />
+    <Compile Include="Entities\Enumerations\ContinuousDropOff.cs" />
+    <Compile Include="Entities\Enumerations\ContinuousPickup.cs" />
+    <Compile Include="Entities\Enumerations\IsBidirectional.cs" />
+    <Compile Include="Entities\Enumerations\PathwayMode.cs" />
+    <Compile Include="Entities\Pathway.cs" />
+    <Compile Include="Entities\Level.cs" />
     <Compile Include="Entities\Agency.cs" />
     <Compile Include="Entities\Calendar.cs" />
     <Compile Include="Entities\CalendarDate.cs" />
@@ -112,6 +115,11 @@
     <Compile Include="StopsToShape\StopAtShape.cs" />
     <Compile Include="StopsToShape\StopAtShapesFinder.cs" />
     <Compile Include="Validation\GTFSFeedValidation.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Data">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

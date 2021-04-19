@@ -117,6 +117,11 @@ namespace GTFS.Entities.Collections
             return _entities;
         }
 
+        public IEnumerable<string> GetIds()
+        {
+            throw new NotImplementedException();
+        }
+
         /// <summary>
         /// Returns the number of entities.
         /// </summary>
@@ -158,7 +163,7 @@ namespace GTFS.Entities.Collections
         /// <returns></returns>
         public void AddRange(IUniqueEntityCollection<T> entities)
         {
-            throw new NotImplementedException();
+            _entities.AddRange(entities);
         }
 
         /// <summary>
@@ -171,12 +176,12 @@ namespace GTFS.Entities.Collections
         }
 
         /// <summary>
-        /// This is just a placeholder
+        /// Replaces the internal list of entities with a new, empty list.
         /// </summary>
         /// <returns></returns>
         public void RemoveAll()
         {
-            throw new NotImplementedException();
+            _entities = new List<T>();
         }
     }
 }

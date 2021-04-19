@@ -27,6 +27,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Linq;
+using System.Text;
 
 namespace GTFS.DB.SQLite.Collections
 {
@@ -130,6 +132,41 @@ namespace GTFS.DB.SQLite.Collections
         }
 
         /// <summary>
+        /// Returns the entities for the given id's.
+        /// </summary>
+        /// <param name="entityIds"></param>
+        /// <returns></returns>
+        public IEnumerable<CalendarDate> Get(List<string> entityIds)
+        {
+            if (entityIds.Count() == 0)
+            {
+                return new List<CalendarDate>();
+            }
+            var sql = new StringBuilder("SELECT service_id, date, exception_type FROM calendar_date WHERE FEED_ID = :feed_id AND service_id = :service_id0");
+            var parameters = new List<SQLiteParameter>();
+            parameters.Add(new SQLiteParameter("feed_id", DbType.Int64));
+            parameters[0].Value = _id;
+            int i = 0;
+            foreach (var entityId in entityIds)
+            {
+                if (i > 0) sql.Append($" OR service_id = :service_id{i}");
+                parameters.Add(new SQLiteParameter($"service_id{i}", DbType.String));
+                parameters[1 + i].Value = entityId;
+                i++;
+            }
+
+            return new SQLiteEnumerable<CalendarDate>(_connection, sql.ToString(), parameters.ToArray(), (x) =>
+            {
+                return new CalendarDate()
+                {
+                    ServiceId = x.GetString(0),
+                    Date = x.GetInt64(1).FromUnixTime(),
+                    ExceptionType = (ExceptionType)x.GetInt64(2)
+                };
+            });
+        }
+
+        /// <summary>
         /// Returns all entities for the given id.
         /// </summary>
         /// <param name="entityId"></param>
@@ -157,6 +194,34 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[1].Value = entityId;
 
                 return command.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Removes a range of entities by their IDs
+        /// </summary>
+        /// <param name="entityId"></param>
+        /// <returns></returns>
+        public void RemoveRange(IEnumerable<string> entityIds)
+        {
+            using (var command = _connection.CreateCommand())
+            {
+                using (var transaction = _connection.BeginTransaction())
+                {
+                    foreach (var entityId in entityIds)
+                    {
+                        string sql = "DELETE FROM calendar_date WHERE FEED_ID = :feed_id AND service_id = :service_id;";
+                        command.CommandText = sql;
+                        command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
+                        command.Parameters.Add(new SQLiteParameter(@"service_id", DbType.String));
+
+                        command.Parameters[0].Value = _id;
+                        command.Parameters[1].Value = entityId;
+
+                        command.ExecuteNonQuery();
+                    }
+                    transaction.Commit();
+                }
             }
         }
 
@@ -189,6 +254,11 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[0].Value = _id;
                 command.ExecuteNonQuery();
             }
+        }
+
+        public IEnumerable<string> GetIds()
+        {
+            throw new NotImplementedException();
         }
     }
 }

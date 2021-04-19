@@ -26,6 +26,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SQLite;
+using System.Linq;
+using System.Text;
 
 namespace GTFS.DB.SQLite.Collections
 {
@@ -170,6 +172,53 @@ namespace GTFS.DB.SQLite.Collections
         }
 
         /// <summary>
+        /// Returns the entities for the given id's.
+        /// </summary>
+        /// <param name="entityIds"></param>
+        /// <returns></returns>
+        public IEnumerable<Shape> Get(List<string> entityIds)
+        {
+            if (entityIds.Count() == 0)
+            {
+                return new List<Shape>();
+            }
+
+            var results = new List<Shape>();
+
+            var groups = entityIds.SplitIntoGroupsByGroupIdx();
+            foreach (var group in groups)
+            {
+                var sql = new StringBuilder("SELECT id, shape_pt_lat, shape_pt_lon, shape_pt_sequence, shape_dist_traveled FROM shape WHERE FEED_ID = :feed_id AND id = :id0");
+                var parameters = new List<SQLiteParameter>();
+                parameters.Add(new SQLiteParameter("feed_id", DbType.Int64));
+                parameters[0].Value = _id;
+                int i = 0;
+                foreach (var entityId in group.Value)
+                {
+                    if (i > 0) sql.Append($" OR id = :id{i}");
+                    parameters.Add(new SQLiteParameter($"id{i}", DbType.String));
+                    parameters[1 + i].Value = entityId;
+                    i++;
+                }
+
+                var result = new SQLiteEnumerable<Shape>(_connection, sql.ToString(), parameters.ToArray(), (x) =>
+                {
+                    return new Shape()
+                    {
+                        Id = x.GetString(0),
+                        Latitude = x.GetDouble(1),
+                        Longitude = x.GetDouble(2),
+                        Sequence = (uint)x.GetInt64(3),
+                        DistanceTravelled = x.IsDBNull(4) ? null : (double?)x.GetDouble(4)
+                    };
+                });
+                results.AddRange(result);
+            }
+
+            return results;
+        }
+
+        /// <summary>
         /// Removes all entities identified by the given id.
         /// </summary>
         /// <param name="entityId"></param>
@@ -188,6 +237,34 @@ namespace GTFS.DB.SQLite.Collections
                 command.Parameters[1].Value = entityId;
 
                 return command.ExecuteNonQuery() > 0;
+            }
+        }
+
+        /// <summary>
+        /// Removes a range of entities by their IDs
+        /// </summary>
+        /// <param name="entityId"></param>
+        /// <returns></returns>
+        public void RemoveRange(IEnumerable<string> entityIds)
+        {
+            using (var command = _connection.CreateCommand())
+            {
+                using (var transaction = _connection.BeginTransaction())
+                {
+                    foreach (var entityId in entityIds)
+                    {
+                        string sql = "DELETE FROM shape WHERE FEED_ID = :feed_id AND id = :shape_id;";
+                        command.CommandText = sql;
+                        command.Parameters.Add(new SQLiteParameter(@"feed_id", DbType.Int64));
+                        command.Parameters.Add(new SQLiteParameter(@"shape_id", DbType.String));
+
+                        command.Parameters[0].Value = _id;
+                        command.Parameters[1].Value = entityId;
+
+                        command.ExecuteNonQuery();
+                    }
+                    transaction.Commit();
+                }
             }
         }
 
@@ -224,6 +301,27 @@ namespace GTFS.DB.SQLite.Collections
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return this.Get().GetEnumerator();
-        }        
+        }
+
+        /// <summary>
+        /// Returns entity ids
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<string> GetIds()
+        {   
+            var shapeIds = new List<string>();
+            using (var command = _connection.CreateCommand())
+            {
+                command.CommandText = "SELECT DISTINCT(id) FROM shape";
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        shapeIds.Add(Convert.ToString(reader["id"]));
+                    }
+                }
+            }
+            return shapeIds;
+        }
     }
 }
