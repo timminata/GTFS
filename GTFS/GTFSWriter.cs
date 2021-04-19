@@ -1066,7 +1066,7 @@ namespace GTFS
         /// Writes the route type.
         /// </summary>
         /// <returns></returns>
-        private string WriteFieldRouteType(string name, string fieldName, RouteTypeExtended value)
+        private string WriteFieldRouteType(string name, string fieldName, RouteType value)
         {
             return ((int)value).ToString();
         }

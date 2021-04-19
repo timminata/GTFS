@@ -228,7 +228,7 @@ namespace GTFS.DB.SQLite.Collections
                     ShortName = x.IsDBNull(2) ? null : x.GetString(2),
                     LongName = x.IsDBNull(3) ? null : x.GetString(3),
                     Description = x.IsDBNull(4) ? null : x.GetString(4),
-                    Type = (RouteTypeExtended)x.GetInt64(5),
+                    Type = (RouteType)x.GetInt64(5),
                     Url = x.IsDBNull(6) ? null : x.GetString(6),
                     Color = x.IsDBNull(7) ? null : (int?)x.GetInt64(7),
                     TextColor = x.IsDBNull(8) ? null : (int?)x.GetInt64(8),

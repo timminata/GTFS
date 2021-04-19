@@ -213,7 +213,7 @@ namespace GTFS.DB.PostgreSQL.Collections
                         ShortName = reader.ReadStringSafe(),
                         LongName = reader.ReadStringSafe(),
                         Description = reader.ReadStringSafe(),
-                        Type = (RouteTypeExtended)reader.Read<int>(NpgsqlTypes.NpgsqlDbType.Integer),
+                        Type = (RouteType)reader.Read<int>(NpgsqlTypes.NpgsqlDbType.Integer),
                         Url = reader.ReadStringSafe(),
                         Color = reader.ReadIntSafe(),
                         TextColor = reader.ReadIntSafe(),
